@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+sqlalchemy
+langgraph
+pydantic
+python-dotenv
+requests
