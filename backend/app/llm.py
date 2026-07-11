@@ -2,6 +2,7 @@ import os
 import re
 import json
 import hashlib
+import requests
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 
@@ -12,16 +13,25 @@ MODEL_PRICING = {
     "tier_2": {"name": "Opus-class (Frontier)", "input": 0.015, "output": 0.075}
 }
 
+class ExtractedEntities(BaseModel):
+    order_id: Optional[str] = None
+    subscription_id: Optional[str] = None
+    refund_amount: Optional[float] = None
+
 class ClassificationResult(BaseModel):
     intent: str
     confidence: float
-    extracted_entities: Dict[str, Any] = {}
+    extracted_entities: ExtractedEntities = Field(default_factory=ExtractedEntities)
     risk_flags: List[str] = []
+
+class ProposedAction(BaseModel):
+    action: str
+    args: Dict[str, Any] = Field(default_factory=dict)
 
 class ResolutionResult(BaseModel):
     reply: str
     confidence: float
-    proposed_actions: List[Dict[str, Any]] = []
+    proposed_actions: List[ProposedAction] = []
     explanation: str
 
 def classify_intent_simulated(message_text: str) -> Dict[str, Any]:
@@ -279,21 +289,127 @@ class ModelRouter:
     """
     
     def __init__(self):
-        # We can implement real API clients here if keys are found
-        self.use_real_llm = False
-        # If open_ai or gemini keys are set, we could initialize real models here.
-        # However, to avoid any API connection error during mock execution,
-        # we will use the simulation engine which outputs reliable schema results
-        # unless real keys are explicitly configured and required.
+        self.api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        self.use_real_llm = bool(self.api_key)
+        if self.use_real_llm:
+            print("[ModelRouter] Found Gemini API key. Real LLM execution enabled.")
+        else:
+            print("[ModelRouter] No Gemini API key found. Sandbox simulation enabled.")
         
+    def call_gemini_api(self, prompt: str, schema: Any, model: str = "gemini-2.5-flash") -> Optional[Dict[str, Any]]:
+        if not self.api_key:
+            return None
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
+        headers = {"Content-Type": "application/json"}
+        
+        # Extract JSON schema from Pydantic
+        schema_dict = schema.model_json_schema() if hasattr(schema, "model_json_schema") else schema.schema()
+        
+        # Clean schema for Gemini compatibility (remove titles, description, definitions etc)
+        def clean_schema(s):
+            if not isinstance(s, dict):
+                return s
+            cleaned = {}
+            for k, v in s.items():
+                if k in ["title", "description", "additionalProperties", "$defs", "definitions"]:
+                    continue
+                if k == "properties":
+                    cleaned[k] = {pk: clean_schema(pv) for pk, pv in v.items()}
+                elif k == "items":
+                    cleaned[k] = clean_schema(v)
+                else:
+                    cleaned[k] = v
+            return cleaned
+            
+        cleaned_schema = clean_schema(schema_dict)
+        
+        # Convert type strings to uppercase (e.g. "OBJECT", "STRING")
+        def convert_types_to_upper(s):
+            if not isinstance(s, dict):
+                return s
+            converted = {}
+            for k, v in s.items():
+                if k == "type" and isinstance(v, str):
+                    converted[k] = v.upper()
+                elif isinstance(v, dict):
+                    converted[k] = convert_types_to_upper(v)
+                elif isinstance(v, list):
+                    converted[k] = [convert_types_to_upper(item) if isinstance(item, dict) else item for item in v]
+                else:
+                    converted[k] = v
+            return converted
+            
+        final_schema = convert_types_to_upper(cleaned_schema)
+
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {
+                            "text": prompt
+                        }
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "responseMimeType": "application/json",
+                "responseSchema": final_schema
+            }
+        }
+        
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=15)
+            if response.status_code == 200:
+                res_json = response.json()
+                text = res_json["candidates"][0]["content"]["parts"][0]["text"]
+                return json.loads(text)
+            else:
+                print(f"Gemini API returned status code {response.status_code}: {response.text}")
+                return None
+        except Exception as e:
+            print(f"Error calling Gemini API: {e}")
+            return None
+
     def classify_intent(self, message_text: str) -> Dict[str, Any]:
         """
         Classifies incoming query. Uses Tier 0.
         Returns: {result: ClassificationResult, model: str, tokens: int, cost: float}
         """
-        # Simulated run
-        res = classify_intent_simulated(message_text)
+        model_tier = "tier_0"
+        model_name = MODEL_PRICING[model_tier]["name"]
+        res = None
         
+        if self.use_real_llm:
+            prompt = (
+                "You are an incoming customer support ticket intent classifier.\n"
+                f"Classify the following customer query:\n\"{message_text}\"\n\n"
+                "Allowed intents:\n"
+                "- \"order_status\" (inquiring about status, tracking, or delivery of an order)\n"
+                "- \"refund_request\" (asking for a return, refund, chargeback, or money back)\n"
+                "- \"shipping_delay\" (complaining about delayed shipment or transit delays)\n"
+                "- \"subscription_cancel\" (requesting cancellation of subscription or membership)\n"
+                "- \"account_access\" (locked out, password reset, login problems)\n"
+                "- \"general_faq\" (general return policy questions, or other standard company policy questions)\n\n"
+                "Extract entities if present:\n"
+                "- \"order_id\" (format ORD-XXXX, e.g. ORD-1001)\n"
+                "- \"subscription_id\" (format SUB-XXXX, e.g. SUB-2001)\n"
+                "- \"refund_amount\" (exact refund dollar value as a float, e.g. 120.00)\n\n"
+                "Identify risk flags (list of strings):\n"
+                "- \"high_refund_value\" (if intent is refund_request and the requested amount is over $100, or if no amount is mentioned but you suspect it's a high-value purchase refund request)\n"
+                "- \"legal_threat\" (if customer mentions lawyers, suing, BBB, court, or legal actions)\n"
+                "- \"angry_language\" (if customer uses profanity, insults, angry capitalization, or extreme frustration)\n\n"
+                "Provide a confidence score between 0.0 and 1.0 (float) for the intent classification."
+            )
+            api_res = self.call_gemini_api(prompt, ClassificationResult, "gemini-2.5-flash")
+            if api_res:
+                res = api_res
+                print(f"[Gemini Classifier] Successfully classified intent: {res.get('intent')} (Conf: {res.get('confidence')})")
+            else:
+                print("[Gemini Classifier] Warning: API call failed or timed out. Falling back to simulation.")
+                
+        if not res:
+            res = classify_intent_simulated(message_text)
+            
         # Calculate tokens based on simple length heuristics
         prompt_tokens = len(message_text.split()) + 150
         comp_tokens = 80
@@ -301,7 +417,7 @@ class ModelRouter:
         
         return {
             "result": ClassificationResult(**res),
-            "model": MODEL_PRICING["tier_0"]["name"],
+            "model": model_name,
             "tokens": prompt_tokens + comp_tokens,
             "cost": round(cost, 6)
         }
@@ -316,11 +432,6 @@ class ModelRouter:
         Routes to standard or frontier tier and generates resolution.
         """
         # Determine tier
-        # Frontier (Tier 2) used if:
-        # - Any legal threat
-        # - High value refund
-        # - Classification confidence is low (< 0.75)
-        # - Angry customer
         if (
             "legal_threat" in classification.risk_flags or
             "high_refund_value" in classification.risk_flags or
@@ -328,24 +439,59 @@ class ModelRouter:
             "angry_language" in classification.risk_flags
         ):
             tier = "tier_2"
-        # Standard (Tier 1) used for order status, refund under $50, shipping status
+            model_id = "gemini-2.5-pro"
         elif classification.intent in ["order_status", "refund_request", "shipping_delay", "subscription_cancel"]:
             tier = "tier_1"
-        # Cheap (Tier 0) used for FAQs
+            model_id = "gemini-2.5-flash"
         else:
             tier = "tier_0"
+            model_id = "gemini-2.5-flash"
             
         pricing = MODEL_PRICING[tier]
+        res = None
         
-        # Generate simulated response
-        res = generate_resolution_simulated(
-            message_text,
-            classification.intent,
-            classification.extracted_entities,
-            classification.risk_flags,
-            context
-        )
-        
+        if self.use_real_llm:
+            # Prepare entities as dictionary
+            entities_data = classification.extracted_entities
+            entities_dict = entities_data.dict() if hasattr(entities_data, 'dict') else entities_data
+            
+            prompt = (
+                "You are an AI customer support resolution expert. Your job is to draft a helpful, professional reply to the customer and propose any system actions (like refunds or cancellations) if applicable.\n\n"
+                f"Customer Message:\n\"{message_text}\"\n\n"
+                f"Classification Intent: {classification.intent}\n"
+                f"Extracted Entities: {entities_dict}\n"
+                f"Risk Flags: {classification.risk_flags}\n\n"
+                f"Context (CRM Profile, Order History, Active Subscriptions, Knowledge Base articles):\n{json.dumps(context, indent=2)}\n\n"
+                "Guidelines:\n"
+                "1. Formulate a polite, helpful customer support email response (under 'reply').\n"
+                "2. If the user's issue can be resolved with a refund or cancellation:\n"
+                "   - For refunds: Look at their order history in the context. If they specify an order or if there is a clear latest order to refund, and the amount is valid (<= order total), propose an action to refund. Note: If the refund is over $50, still propose it but set a low confidence score (e.g. 0.60) so it escalates to human review, explaining in the explanation that it exceeds the auto threshold.\n"
+                "   - For cancellations: Propose cancellation of the subscription. Note: In our business rules, all subscription cancellations should be escalated to human agents for retention (confidence score should be set to 0.55).\n"
+                "   - If no order is found or if details are missing, politely ask the user for clarification in your reply and do not propose any actions. Set confidence score lower (e.g., 0.70) to escalate.\n"
+                "3. If it's a general FAQ, use the Knowledge Base article in the context to draft the reply. Set confidence high (0.95) if a good match is found, or low (0.50) if no matching article is in context.\n"
+                "4. Set the \"confidence\" score between 0.0 and 1.0 based on how confident you are that this resolution is fully correct and safe to execute automatically.\n"
+                "5. Set the \"explanation\" field to explain your reasoning (especially why you set a low confidence score or why you proposed a particular action).\n\n"
+                "Propose actions inside the 'proposed_actions' array as objects with 'action' and 'args' fields:\n"
+                "- Example refund: {\"action\": \"issue_refund\", \"args\": {\"order_id\": \"ORD-1001\", \"amount\": 120.0, \"reason\": \"Reason details\"}}\n"
+                "- Example cancel: {\"action\": \"cancel_subscription\", \"args\": {\"subscription_id\": \"SUB-2001\", \"reason\": \"Reason details\"}}"
+            )
+            api_res = self.call_gemini_api(prompt, ResolutionResult, model_id)
+            if api_res:
+                res = api_res
+                print(f"[Gemini Resolver] Successfully generated resolution via {model_id} (Conf: {res.get('confidence')})")
+            else:
+                print(f"[Gemini Resolver] Warning: API call failed or timed out. Falling back to simulation.")
+                
+        if not res:
+            entities_dict = classification.extracted_entities.dict() if hasattr(classification.extracted_entities, "dict") else classification.extracted_entities
+            res = generate_resolution_simulated(
+                message_text,
+                classification.intent,
+                entities_dict,
+                classification.risk_flags,
+                context
+            )
+            
         # Token metrics
         prompt_tokens = len(message_text.split()) + len(str(context).split()) + 300
         comp_tokens = len(res["reply"].split()) + 100

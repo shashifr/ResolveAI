@@ -137,7 +137,7 @@ export default function Dashboard() {
   // Audit trace detailed view
   const [selectedNodeLog, setSelectedNodeLog] = useState<AuditLog | null>(null);
 
-  const backendUrl = "http://localhost:8000";
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
   // Fetch initial data
   const fetchData = async () => {
