@@ -137,6 +137,9 @@ export default function Dashboard() {
   // Audit trace detailed view
   const [selectedNodeLog, setSelectedNodeLog] = useState<AuditLog | null>(null);
 
+  // Mobile view state ('list' | 'details')
+  const [activeMobileView, setActiveMobileView] = useState<"list" | "details">("list");
+
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
   // Fetch initial data
@@ -248,6 +251,7 @@ export default function Dashboard() {
       if (res.ok) {
         const data = await res.json();
         setSelectedTicketId(data.ticket_id);
+        setActiveMobileView("details");
         fetchData();
       }
     } catch (e) {
@@ -330,6 +334,7 @@ export default function Dashboard() {
           if (res.ok) {
             const data = await res.json();
             setSelectedTicketId(data.ticket_id);
+            setActiveMobileView("details");
             fetchData();
           }
         } catch (e) {
@@ -520,9 +525,11 @@ export default function Dashboard() {
       )}
 
       {/* Main Core Dashboard Content */}
-      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden max-h-[calc(100vh-73px)]">
+      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden lg:max-h-[calc(100vh-73px)] max-h-[calc(100vh-61px)]">
         {/* Left Side: Main Column & Navigation */}
-        <div className="flex-1 flex flex-col overflow-y-auto border-r border-slate-800 p-6 gap-6">
+        <div className={`flex-1 flex flex-col overflow-y-auto border-r border-slate-800 p-4 sm:p-6 gap-6 ${
+          activeMobileView === "details" ? "hidden lg:flex" : "flex"
+        }`}>
           
           {/* Dashboard Metrics Panel */}
           <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -643,7 +650,10 @@ export default function Dashboard() {
               filteredTickets.map((t) => (
                 <div
                   key={t.id}
-                  onClick={() => setSelectedTicketId(t.id)}
+                  onClick={() => {
+                    setSelectedTicketId(t.id);
+                    setActiveMobileView("details");
+                  }}
                   className={`border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer transition-all hover:bg-slate-900/60 ${
                     selectedTicketId === t.id 
                       ? "border-indigo-500 bg-indigo-500/5 shadow-md shadow-indigo-500/5" 
@@ -692,7 +702,9 @@ export default function Dashboard() {
         </div>
 
         {/* Right Side: Ticket Details & Audit Trace Viewer */}
-        <div className="w-full lg:w-[480px] xl:w-[600px] border-t lg:border-t-0 border-slate-800 bg-slate-900/30 flex flex-col overflow-y-auto p-6 gap-6">
+        <div className={`w-full lg:w-[480px] xl:w-[600px] border-t lg:border-t-0 border-slate-800 bg-slate-900/30 flex flex-col overflow-y-auto p-4 sm:p-6 gap-6 ${
+          activeMobileView === "list" ? "hidden lg:flex" : "flex"
+        }`}>
           {!selectedTicketDetails ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-sm gap-2 py-12">
               <Cpu className="h-8 w-8 text-slate-700 animate-pulse" />
