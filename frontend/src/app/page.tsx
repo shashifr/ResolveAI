@@ -454,44 +454,50 @@ export default function Dashboard() {
   return (
     <div className="flex-1 flex flex-col bg-slate-950 text-slate-100 min-h-screen font-sans">
       {/* Top Header */}
-      <header className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 shadow-lg shadow-indigo-500/30">
-            <ShieldCheck className="h-6 w-6 text-white" />
+      <header className="flex flex-row items-center justify-between border-b border-slate-800 bg-slate-900 px-4 py-3 md:px-6 md:py-4 gap-2">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-indigo-600 shadow-lg shadow-indigo-500/30 shrink-0">
+            <ShieldCheck className="h-5.5 w-5.5 sm:h-6 sm:w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            <h1 className="text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
               SentinelDesk
-              <span className="inline-flex items-center rounded-md bg-indigo-500/10 px-2 py-1 text-xs font-medium text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
+              <span className="hidden sm:inline-flex items-center rounded-md bg-indigo-500/10 px-2 py-1 text-xs font-medium text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
                 Agent Console
               </span>
             </h1>
-            <p className="text-xs text-slate-400">Autonomous Customer Support Gatekeeper</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 hidden sm:block font-medium">Autonomous Customer Support Gatekeeper</p>
           </div>
         </div>
 
         {/* Action Triggers */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           <button 
             onClick={() => setIsEmailSimOpen(true)}
-            className="flex items-center gap-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-xs font-semibold text-slate-200 px-3.5 py-2 transition-all cursor-pointer"
+            className="flex items-center gap-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-xs font-semibold text-slate-200 p-2 sm:px-3.5 sm:py-2 transition-all cursor-pointer"
+            title="Simulate Email"
           >
             <Mail className="h-4 w-4 text-indigo-400" />
-            Simulate Email
+            <span className="hidden md:inline">Simulate Email</span>
+            <span className="hidden sm:inline md:hidden">Email</span>
           </button>
           <button 
             onClick={() => setIsVoiceSimOpen(true)}
-            className="flex items-center gap-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-xs font-semibold text-slate-200 px-3.5 py-2 transition-all cursor-pointer"
+            className="flex items-center gap-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-xs font-semibold text-slate-200 p-2 sm:px-3.5 sm:py-2 transition-all cursor-pointer"
+            title="Simulate Voice Call"
           >
             <Phone className="h-4 w-4 text-emerald-400" />
-            Simulate Voice Call
+            <span className="hidden md:inline">Simulate Voice Call</span>
+            <span className="hidden sm:inline md:hidden">Voice</span>
           </button>
           <button 
             onClick={() => setIsChatWidgetOpen(true)}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white px-3.5 py-2 transition-all shadow-md shadow-indigo-600/10 cursor-pointer"
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white p-2 sm:px-3.5 sm:py-2 transition-all shadow-md shadow-indigo-600/10 cursor-pointer"
+            title="Test Chat Widget"
           >
             <MessageSquare className="h-4 w-4" />
-            Test Chat Widget
+            <span className="hidden md:inline">Test Chat Widget</span>
+            <span className="hidden sm:inline md:hidden">Chat</span>
           </button>
           <button
             onClick={fetchData}
@@ -1055,7 +1061,7 @@ export default function Dashboard() {
       {/* Email Simulation Modal */}
       {isEmailSimOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-2xl relative">
+          <div className="w-full max-w-lg rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setIsEmailSimOpen(false)}
               className="absolute right-4 top-4 text-slate-400 hover:text-slate-200 cursor-pointer"
@@ -1141,7 +1147,7 @@ export default function Dashboard() {
       {/* Voice Call Simulation Modal */}
       {isVoiceSimOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-2xl relative">
+          <div className="w-full max-w-lg rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => {
                 setIsVoiceSimOpen(false);
