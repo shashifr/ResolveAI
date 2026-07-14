@@ -28,6 +28,7 @@ import {
   Play, 
   Square,
   ChevronRight,
+  ChevronLeft,
   Database
 } from "lucide-react";
 
@@ -711,6 +712,19 @@ export default function Dashboard() {
         <div className={`w-full lg:w-[480px] xl:w-[600px] border-t lg:border-t-0 border-slate-800 bg-slate-900/30 flex flex-col overflow-y-auto p-4 sm:p-6 gap-6 ${
           activeMobileView === "list" ? "hidden lg:flex" : "flex"
         }`}>
+          {/* Mobile Back Button */}
+          {activeMobileView === "details" && (
+            <div className="lg:hidden flex items-center mb-1">
+              <button
+                onClick={() => setActiveMobileView("list")}
+                className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer shadow-md transition-all active:scale-95"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Back to Ticket Stream
+              </button>
+            </div>
+          )}
+
           {!selectedTicketDetails ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-sm gap-2 py-12">
               <Cpu className="h-8 w-8 text-slate-700 animate-pulse" />
@@ -1243,7 +1257,7 @@ export default function Dashboard() {
 
       {/* Floating Chat Widget Simulator */}
       {isChatWidgetOpen && (
-        <div className="fixed bottom-6 right-6 w-80 md:w-96 rounded-xl border border-slate-800 bg-slate-900 shadow-2xl z-40 flex flex-col overflow-hidden animate-slide-up">
+        <div className="fixed bottom-4 right-4 left-4 md:left-auto md:right-6 md:bottom-6 md:w-96 rounded-xl border border-slate-800 bg-slate-900 shadow-2xl z-40 flex flex-col overflow-hidden animate-slide-up">
           {/* Header */}
           <div className="bg-indigo-600 px-4 py-3 flex items-center justify-between text-white">
             <div className="flex items-center gap-2">
