@@ -13,7 +13,7 @@ ENV/
 .pytest_cache/
 
 # Local databases (mock states)
-backend/sentinel.db
+backend/ai_customer_support.db
 **/*.db
 **/*.sqlite
 

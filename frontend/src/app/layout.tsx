@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SentinelDesk — Autonomous Customer Support Console",
+  title: "AI Customer Support — Autonomous Customer Support Console",
   description: "Confidence-gated customer support agent with cryptographic-style audit logs and cost routing.",
 };
 
@@ -23,11 +23,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
-    </html>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`} suppressHydrationWarning><body className="min-h-full flex flex-col">{children}</body></html>
   );
 }

@@ -19,7 +19,7 @@ def send_get(endpoint):
         return json.loads(res.read().decode("utf-8"))
 
 def run_tests():
-    print("=== SentinelDesk API Integration Verification ===")
+    print("=== AI Customer Support API Integration Verification ===")
     
     # 1. Test FAQ (Should Auto-Resolve)
     print("\n[Test 1] Simulating Inbound FAQ Email...")

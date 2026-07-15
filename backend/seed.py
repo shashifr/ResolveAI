@@ -85,7 +85,7 @@ def seed_data():
         Subscription(
             id="SUB-2001",
             customer_id=alice.id,
-            plan_name="Sentinel Cloud Pro (Monthly)",
+            plan_name="AI Support Cloud Pro (Monthly)",
             status="Active",
             price=29.99,
             next_billing_date=now + datetime.timedelta(days=20)
@@ -93,7 +93,7 @@ def seed_data():
         Subscription(
             id="SUB-2002",
             customer_id=charlie.id,
-            plan_name="Sentinel Developer Suite (Annual)",
+            plan_name="AI Support Developer Suite (Annual)",
             status="Active",
             price=199.00,
             next_billing_date=now + datetime.timedelta(days=120)

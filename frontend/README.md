@@ -1,9 +1,9 @@
-# SentinelDesk - AI Customer Support Agent Dashboard
+# AI Customer Support - Agent Dashboard
 
 > [!NOTE]
 > For a detailed guide on the system architecture, Mixture-of-Experts (MoE) model tiers, LangGraph workflow, and cryptographic ledger verification, please refer to the main [project README](../README.md).
 
-SentinelDesk is a multi-tier Mixture-of-Experts (MoE) customer support automation system with a LangGraph-powered backend and a Next.js frontend. It features automatic FAQ resolution, high-value request escalation to a human console, and a cryptographic audit ledger for execution trace validation.
+AI Customer Support is a multi-tier Mixture-of-Experts (MoE) customer support automation system with a LangGraph-powered backend and a Next.js frontend. It features automatic FAQ resolution, high-value request escalation to a human console, and a cryptographic audit ledger for execution trace validation.
 
 ---
 
@@ -77,7 +77,7 @@ The frontend is built with Next.js and runs on port `3000`.
    ```
 
 4. **Open the browser**:
-   Open [http://localhost:3000](http://localhost:3000) to view the SentinelDesk Dashboard and simulator console.
+   Open [http://localhost:3000](http://localhost:3000) to view the AI Customer Support Dashboard and simulator console.
 
 ---
 

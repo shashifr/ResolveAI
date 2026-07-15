@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 # SQLite database file path
-DATABASE_URL = "sqlite:///sentinel.db"
+DATABASE_URL = "sqlite:///ai_customer_support.db"
 
 engine = create_engine(
     DATABASE_URL, 

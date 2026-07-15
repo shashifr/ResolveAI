@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { 
   Inbox, 
   Mail, 
@@ -84,7 +85,7 @@ interface Metrics {
   avg_resp_time_sec: number;
 }
 
-export default function Dashboard() {
+function DashboardComponent() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [selectedTicketDetails, setSelectedTicketDetails] = useState<TicketDetails | null>(null);
@@ -126,7 +127,7 @@ export default function Dashboard() {
   const [chatEmail, setChatEmail] = useState("charlie.green@yahoo.com");
   const [chatTicketId, setChatTicketId] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<Array<{sender: 'customer' | 'agent' | 'system', content: string}>>([
-    { sender: 'system', content: 'Enter your email to start chatting with SentinelDesk AI.' }
+    { sender: 'system', content: 'Enter your email to start chatting with AI Customer Support.' }
   ]);
   const [chatInput, setChatInput] = useState("");
   const [chatStatus, setChatStatus] = useState<"idle" | "connecting" | "typing" | "escalated">("idle");
@@ -270,7 +271,7 @@ export default function Dashboard() {
       email: "bob.miller@outlook.com",
       dialogue: [
         "Customer: Hi, I'm calling about order ORD-1003. I spent $150 on the Keyboard Pro and it is completely malfunctioning. I want a refund right now. This is unacceptable.",
-        "System: SentinelDesk Intake: Analyzing caller voice transcript...",
+        "System: AI Customer Support Intake: Analyzing caller voice transcript...",
         "System: Classifier detected: 'refund_request' with risk flags ['high_refund_value', 'angry_language'].",
         "System: MoE routed to Tier 2 (Opus-class Frontier Model) due to high-risk parameters.",
         "System: Gating Check: Confidence 0.60 is below threshold of 0.85.",
@@ -282,7 +283,7 @@ export default function Dashboard() {
       email: "bob.miller@outlook.com",
       dialogue: [
         "Customer: Hello, I placed order ORD-1002 five days ago and the mouse still hasn't arrived. The tracking number is TRK-112233445. What is going on?",
-        "System: SentinelDesk Intake: Classifying transcript query...",
+        "System: AI Customer Support Intake: Classifying transcript query...",
         "System: Classifier detected: 'shipping_delay' with confidence 0.88.",
         "System: CRM Lookup: Order ORD-1002 status is 'Shipped' but is flagged delayed (ordered 5 days ago).",
         "System: MoE routed to Tier 1 (Sonnet-class Standard Model).",
@@ -295,7 +296,7 @@ export default function Dashboard() {
       email: "alice.vance@gmail.com",
       dialogue: [
         "Customer: Yes, hello, I want to know what your return policy is. How many days do I have to return an item?",
-        "System: SentinelDesk Intake: Classifying FAQ query...",
+        "System: AI Customer Support Intake: Classifying FAQ query...",
         "System: Classifier detected: 'general_faq' with confidence 0.95.",
         "System: KB Search: Found matching FAQ 'What is your return policy?'.",
         "System: MoE routed to Tier 0 (Haiku-class Cheap Model).",
@@ -364,7 +365,7 @@ export default function Dashboard() {
     setChatStatus("connecting");
     setTimeout(() => {
       setChatMessages([
-        { sender: 'system', content: `Connected as ${chatEmail}. Type your message below to chat with SentinelDesk.` }
+        { sender: 'system', content: `Connected as ${chatEmail}. Type your message below to chat with AI Customer Support.` }
       ]);
       setChatStatus("idle");
     }, 1000);
@@ -462,7 +463,7 @@ export default function Dashboard() {
           </div>
           <div>
             <h1 className="text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
-              SentinelDesk
+              AI Customer Support
               <span className="hidden sm:inline-flex items-center rounded-md bg-indigo-500/10 px-2 py-1 text-xs font-medium text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
                 Agent Console
               </span>
@@ -518,7 +519,7 @@ export default function Dashboard() {
             <Sparkles className="h-6 w-6 text-indigo-400 absolute inset-0 m-auto animate-pulse" />
           </div>
           <div className="text-center">
-            <h3 className="text-lg font-bold text-white mb-1">SentinelDesk LangGraph Active</h3>
+            <h3 className="text-lg font-bold text-white mb-1">AI Customer Support LangGraph Active</h3>
             <p className="text-sm text-indigo-400 animate-pulse font-medium">
               {simulatingStep === "intake" && "Intake & Normalization..."}
               {simulatingStep === "classifier" && "Tier 0: Classifying Intent & Risks..."}
@@ -677,7 +678,7 @@ export default function Dashboard() {
                       {t.channel === "voice" && <span title="Voice Call"><Phone className="h-3.5 w-3.5 text-emerald-400" /></span>}
                       
                       <span className="text-xs text-slate-400 font-medium truncate">{t.customer_email}</span>
-                      <span className="text-[10px] text-slate-500">• {new Date(t.updated_at).toLocaleTimeString()}</span>
+                      <span className="text-[10px] text-slate-500" suppressHydrationWarning={true}>• {new Date(t.updated_at).toLocaleTimeString()}</span>
                     </div>
 
                     <h3 className="text-sm font-semibold text-white truncate mb-1">{t.subject || "No Subject"}</h3>
@@ -875,8 +876,8 @@ export default function Dashboard() {
                     >
                       {m.sender !== "system" ? (
                         <>
-                          <span className="text-[9px] text-slate-500 mb-1 px-1">
-                            {m.sender === "customer" ? "Customer" : "SentinelDesk Agent"} • {new Date(m.timestamp).toLocaleTimeString()}
+                          <span className="text-[9px] text-slate-500 mb-1 px-1" suppressHydrationWarning={true}>
+                            {m.sender === "customer" ? "Customer" : "AI Customer Support Agent"} • {new Date(m.timestamp).toLocaleTimeString()}
                           </span>
                           <div className={`rounded-xl px-3 py-2 text-xs leading-relaxed max-w-[85%] ${
                             m.sender === "customer" 
@@ -1106,7 +1107,7 @@ export default function Dashboard() {
                       body = "Hello, my ergonomic desk mouse (Order ORD-1002) is still showing as shipped but has not arrived for 5 days. Can you tell me where it is?";
                     } else if (email === "charlie.green@yahoo.com") {
                       subject = "Cancel subscription immediately";
-                      body = "I need to cancel my Sentinel Developer Suite subscription SUB-2002. Please stop billing my card.";
+                      body = "I need to cancel my AI Support Developer Suite subscription SUB-2002. Please stop billing my card.";
                     }
                     
                     setEmailForm({ sender: email, subject, body });
@@ -1263,7 +1264,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-yellow-300 animate-pulse" />
               <div>
-                <h4 className="text-xs font-bold">SentinelDesk Support</h4>
+                <h4 className="text-xs font-bold">AI Customer Support</h4>
                 <p className="text-[9px] text-indigo-200 flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
                   Active AI Agent
@@ -1308,7 +1309,7 @@ export default function Dashboard() {
                 <span className="h-1 w-1 bg-slate-500 rounded-full animate-bounce"></span>
                 <span className="h-1 w-1 bg-slate-500 rounded-full animate-bounce delay-75"></span>
                 <span className="h-1 w-1 bg-slate-500 rounded-full animate-bounce delay-150"></span>
-                SentinelDesk is thinking...
+                AI Customer Support is thinking...
               </div>
             )}
             
@@ -1365,3 +1366,9 @@ export default function Dashboard() {
     </div>
   );
 }
+
+const Dashboard = dynamic(() => Promise.resolve(DashboardComponent), {
+  ssr: false,
+});
+
+export default Dashboard;

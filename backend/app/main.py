@@ -13,7 +13,7 @@ from app.models import Ticket, Message, AuditLog, Customer, Order, Subscription
 from app.graph import run_support_flow, create_audit_entry, ACTION_THRESHOLDS
 from app.tools import issue_refund, cancel_subscription
 
-app = FastAPI(title="SentinelDesk Backend API")
+app = FastAPI(title="AI Customer Support Backend API")
 
 # Enable CORS for Next.js frontend
 app.add_middleware(

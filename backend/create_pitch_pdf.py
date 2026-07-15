@@ -52,7 +52,7 @@ class NumberedCanvas(canvas.Canvas):
         # Draw header rule and text
         self.setFont("Helvetica-Bold", 8)
         self.setFillColor(SECONDARY_COLOR)
-        self.drawString(54, 750, "SENTINELDESK — INBOX HACKATHON PITCH STRATEGY")
+        self.drawString(54, 750, "AI CUSTOMER SUPPORT — INBOX HACKATHON PITCH STRATEGY")
         
         self.setStrokeColor(BORDER_COLOR)
         self.setLineWidth(0.5)
@@ -175,7 +175,7 @@ def build_pdf(filename="inbox_hackathon_pitch.pdf"):
     
     # ------------------ COVER PAGE ------------------
     story.append(Spacer(1, 100))
-    story.append(Paragraph("SENTINELDESK", ParagraphStyle('Upper', fontName='Helvetica-Bold', fontSize=12, leading=14, textColor=SECONDARY_COLOR, spaceAfter=10)))
+    story.append(Paragraph("AI CUSTOMER SUPPORT", ParagraphStyle('Upper', fontName='Helvetica-Bold', fontSize=12, leading=14, textColor=SECONDARY_COLOR, spaceAfter=10)))
     story.append(Paragraph("Inbox Hackathon Pitch Strategy & Guide", title_style))
     story.append(Paragraph("Automating 80% of support inboxes safely with stateful agent graphs, Mixture-of-Experts routing, and cryptographic logs.", subtitle_style))
     
@@ -198,7 +198,7 @@ def build_pdf(filename="inbox_hackathon_pitch.pdf"):
     
     # Quick callout box on cover
     callout_data = [[
-        Paragraph("<b>Key Concept:</b> Pitch SentinelDesk not just as another AI chatbot, but as a <b>highly secure, cost-optimized, enterprise-ready automation engine</b> that bridges the speed of AI with the compliance of cryptographic hashing and Human-in-the-Loop oversight.", body_style)
+        Paragraph("<b>Key Concept:</b> Pitch AI Customer Support not just as another AI chatbot, but as a <b>highly secure, cost-optimized, enterprise-ready automation engine</b> that bridges the speed of AI with the compliance of cryptographic hashing and Human-in-the-Loop oversight.", body_style)
     ]]
     callout_table = Table(callout_data, colWidths=[500])
     callout_table.setStyle(TableStyle([
@@ -214,25 +214,25 @@ def build_pdf(filename="inbox_hackathon_pitch.pdf"):
     
     # ------------------ SECTION 1: THE ANGLE ------------------
     story.append(Paragraph("1. The Pitch Angle: Safe, Semi-Autonomous Inbox Scaling", h1_style))
-    story.append(Paragraph("In an <b>Inbox Hackathon</b>, judges evaluate projects on productivity, realism, and handling inbox overload. Typical 'AI auto-responders' fail because businesses are terrified of hallucinations, unauthorized actions (e.g. issuing massive refunds), and general lack of accountability. SentinelDesk solves this trust deficit.", body_style))
+    story.append(Paragraph("In an <b>Inbox Hackathon</b>, judges evaluate projects on productivity, realism, and handling inbox overload. Typical 'AI auto-responders' fail because businesses are terrified of hallucinations, unauthorized actions (e.g. issuing massive refunds), and general lack of accountability. AI Customer Support solves this trust deficit.", body_style))
     
     story.append(Spacer(1, 10))
     story.append(Paragraph("<b>The Winning Narrative to Deliver:</b>", h2_style))
-    story.append(Paragraph('"Companies want to automate their support inboxes, but they are terrified of hallucinations, accidental refunds, and lack of accountability. SentinelDesk solves this with a Multi-Tier Mixture-of-Experts (MoE) system that operates safely using Confidence Gating and a Cryptographic Audit Ledger to guarantee absolute decision integrity."', quote_style))
+    story.append(Paragraph('"Companies want to automate their support inboxes, but they are terrified of hallucinations, accidental refunds, and lack of accountability. AI Customer Support solves this with a Multi-Tier Mixture-of-Experts (MoE) system that operates safely using Confidence Gating and a Cryptographic Audit Ledger to guarantee absolute decision integrity."', quote_style))
     
     # ------------------ SECTION 2: SLIDE OUTLINE ------------------
     story.append(Paragraph("2. Slide-by-Slide Pitch Deck Outline", h1_style))
     
     slides = [
         ("Slide 1: Title & Vision", 
-         "<b>Visual:</b> Sleek dark-mode mockup of the Next.js SentinelDesk Dashboard.<br/>"
+         "<b>Visual:</b> Sleek dark-mode mockup of the Next.js AI Customer Support Dashboard.<br/>"
          "<b>Pitch Focus:</b> Introduce the core promise: Trust-Gated Support Inbox Automation."),
         
         ("Slide 2: The Core Problem", 
          "<b>Visual:</b> Split screen: Customer waiting 12 hours vs. Support team drowning in ticket costs.<br/>"
          "<b>Pitch Focus:</b> Inbox Overload (70% repetitive), Cost vs. Quality Dilemma (Frontier LLMs are too expensive; cheap ones are too risky), and the Trust Gap (the black-box AI issue)."),
         
-        ("Slide 3: The Solution (SentinelDesk)", 
+        ("Slide 3: The Solution (AI Customer Support)", 
          "<b>Visual:</b> Graph flowchart showing incoming messages flowing through LangGraph state machine.<br/>"
          "<b>Pitch Focus:</b> Stateful orchestration, intent-specific gating, and Human-in-the-Loop console for 1-click approvals on edge cases."),
         
@@ -258,7 +258,7 @@ def build_pdf(filename="inbox_hackathon_pitch.pdf"):
     
     # ------------------ SECTION 3: TECH SPECS & MOE ------------------
     story.append(Paragraph("3. Technical Architecture & MoE Tiers", h1_style))
-    story.append(Paragraph("SentinelDesk uses a cost-performance optimized routing mechanism. Below is the active routing layout utilized by our LangGraph engine:", body_style))
+    story.append(Paragraph("AI Customer Support uses a cost-performance optimized routing mechanism. Below is the active routing layout utilized by our LangGraph engine:", body_style))
     
     moe_data = [
         ["Tier", "Model Class", "Cost (per 1K tkn In/Out)", "Primary Use Cases"],
@@ -296,22 +296,22 @@ def build_pdf(filename="inbox_hackathon_pitch.pdf"):
          "Every day, customer service inboxes are flooded with thousands of messages. For businesses, this is an expensive, slow bottleneck. "
          "But replacing humans with autonomous AI support leads to a terrifying trust gap. How do you stop an LLM from hallucinating refund policies, "
          "or worse, going rogue and issuing massive refunds automatically? And how do you do this without running up thousands of dollars in frontier "
-         "model API costs? Meet SentinelDesk, a multi-tier customer support automation dashboard that bridges the gap between speed, safety, and operational budget."),
+         "model API costs? Meet AI Customer Support, a multi-tier customer support automation dashboard that bridges the gap between speed, safety, and operational budget."),
         
         ("0:45 - 1:45 | The Technology", 
-         "Under the hood, SentinelDesk uses a stateful agentic pipeline built with LangGraph. When an email or chat lands in the inbox, "
+         "Under the hood, AI Customer Support uses a stateful agentic pipeline built with LangGraph. When an email or chat lands in the inbox, "
          "we process it using: First, Mixture-of-Experts routing, reserving frontier models like Gemini Pro exclusively for high-risk tickets, "
          "angry customers, or legal threats, saving up to 80% on token costs. Second, Confidence Gating, halting execution if safety check thresholds "
          "are violated. Third, the Human Console, where low-confidence resolutions are presented as pre-staged drafts for 1-click human execution."),
         
         ("1:45 - 2:45 | Security & Demo", 
-         "But what makes SentinelDesk truly enterprise-grade is our Cryptographic Audit Ledger. Every single decision—which model was called, the "
+         "But what makes AI Customer Support truly enterprise-grade is our Cryptographic Audit Ledger. Every single decision—which model was called, the "
          "confidence score, the tools used—is hashed and mathematically chained to the previous action using SHA-256. This creates an immutable, "
          "tamper-evident audit log. If someone tries to modify the database history, the verification chain fails instantly. Let's look at the dashboard "
          "in action showing our simulator running node-by-node and checking off our cryptographic ledger blocks."),
         
         ("2:45 - 3:00 | Conclusion", 
-         "SentinelDesk makes inbox automation secure, cost-effective, and fully auditable. It's the future of trust-gated AI customer operations. Thank you!")
+         "AI Customer Support makes inbox automation secure, cost-effective, and fully auditable. It's the future of trust-gated AI customer operations. Thank you!")
     ]
     
     for time_title, text in script_sections:
@@ -323,7 +323,7 @@ def build_pdf(filename="inbox_hackathon_pitch.pdf"):
     
     # ------------------ SECTION 5: Q&A PLAYBOOK ------------------
     story.append(Paragraph("5. Q&A Defense Playbook", h1_style))
-    story.append(Paragraph("Be prepared for tough questions from the judging panel. Here are targeted defenses based on SentinelDesk's actual design:", body_style))
+    story.append(Paragraph("Be prepared for tough questions from the judging panel. Here are targeted defenses based on AI Customer Support's actual design:", body_style))
     
     qa_data = [
         ["Judge's Question", "Your Bulletproof Answer"],
