@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
+import SplitText from "../components/ui/SplitText";
 import { 
   Inbox, 
   Mail, 
@@ -1391,13 +1392,19 @@ function DashboardComponent() {
             </div>
 
             {/* Glowing Text */}
-            <h1 className="animate-fade-in-up animation-delay-200 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
-              Welcome to the <br />
-              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]">
-                Autonomous AI Customer Support
-              </span>
-              <br />Platform
-            </h1>
+            <div className="mb-4 flex justify-center">
+              <SplitText
+                text="Welcome to the Autonomous AI Customer Support Platform"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400 leading-tight drop-shadow-[0_0_15px_rgba(99,102,241,0.3)] max-w-xl"
+                delay={25}
+                duration={0.6}
+                ease="power3.out"
+                tag="h1"
+                from={{ opacity: 0, y: 25 }}
+                to={{ opacity: 1, y: 0 }}
+                textAlign="center"
+              />
+            </div>
 
             <p className="animate-fade-in-up animation-delay-450 text-xs sm:text-sm md:text-base text-slate-400 max-w-lg mb-8 font-medium">
               An enterprise-grade, trust-gated customer support automation engine powered by stateful agent graphs, Mixture-of-Experts routing, and tamper-evident cryptographic log chaining.
