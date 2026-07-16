@@ -132,7 +132,7 @@ function DashboardComponent() {
   const [chatEmail, setChatEmail] = useState("charlie.green@yahoo.com");
   const [chatTicketId, setChatTicketId] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<Array<{sender: 'customer' | 'agent' | 'system', content: string}>>([
-    { sender: 'system', content: 'Enter your email to start chatting with AI Customer Support.' }
+    { sender: 'system', content: 'Enter your email to start chatting with ResolveAI.' }
   ]);
   const [chatInput, setChatInput] = useState("");
   const [chatStatus, setChatStatus] = useState<"idle" | "connecting" | "typing" | "escalated">("idle");
@@ -280,7 +280,7 @@ function DashboardComponent() {
       email: "bob.miller@outlook.com",
       dialogue: [
         "Customer: Hi, I'm calling about order ORD-1003. I spent $150 on the Keyboard Pro and it is completely malfunctioning. I want a refund right now. This is unacceptable.",
-        "System: AI Customer Support Intake: Analyzing caller voice transcript...",
+        "System: ResolveAI Intake: Analyzing caller voice transcript...",
         "System: Classifier detected: 'refund_request' with risk flags ['high_refund_value', 'angry_language'].",
         "System: MoE routed to Tier 2 (Opus-class Frontier Model) due to high-risk parameters.",
         "System: Gating Check: Confidence 0.60 is below threshold of 0.85.",
@@ -292,7 +292,7 @@ function DashboardComponent() {
       email: "bob.miller@outlook.com",
       dialogue: [
         "Customer: Hello, I placed order ORD-1002 five days ago and the mouse still hasn't arrived. The tracking number is TRK-112233445. What is going on?",
-        "System: AI Customer Support Intake: Classifying transcript query...",
+        "System: ResolveAI Intake: Classifying transcript query...",
         "System: Classifier detected: 'shipping_delay' with confidence 0.88.",
         "System: CRM Lookup: Order ORD-1002 status is 'Shipped' but is flagged delayed (ordered 5 days ago).",
         "System: MoE routed to Tier 1 (Sonnet-class Standard Model).",
@@ -305,7 +305,7 @@ function DashboardComponent() {
       email: "alice.vance@gmail.com",
       dialogue: [
         "Customer: Yes, hello, I want to know what your return policy is. How many days do I have to return an item?",
-        "System: AI Customer Support Intake: Classifying FAQ query...",
+        "System: ResolveAI Intake: Classifying FAQ query...",
         "System: Classifier detected: 'general_faq' with confidence 0.95.",
         "System: KB Search: Found matching FAQ 'What is your return policy?'.",
         "System: MoE routed to Tier 0 (Haiku-class Cheap Model).",
@@ -482,7 +482,7 @@ function DashboardComponent() {
           </div>
           <div>
             <h1 className="text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
-              AI Customer Support
+              ResolveAI
               <span className="hidden sm:inline-flex items-center rounded-md bg-indigo-500/10 px-2 py-1 text-xs font-medium text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
                 Agent Console
               </span>
@@ -549,7 +549,7 @@ function DashboardComponent() {
             <Sparkles className="h-6 w-6 text-indigo-400 absolute inset-0 m-auto animate-pulse" />
           </div>
           <div className="text-center">
-            <h3 className="text-lg font-bold text-white mb-1">AI Customer Support LangGraph Active</h3>
+            <h3 className="text-lg font-bold text-white mb-1">ResolveAI LangGraph Active</h3>
             <p className="text-sm text-indigo-400 animate-pulse font-medium">
               {simulatingStep === "intake" && "Intake & Normalization..."}
               {simulatingStep === "classifier" && "Tier 0: Classifying Intent & Risks..."}
@@ -1339,7 +1339,7 @@ function DashboardComponent() {
                 <span className="h-1 w-1 bg-slate-500 rounded-full animate-bounce"></span>
                 <span className="h-1 w-1 bg-slate-500 rounded-full animate-bounce delay-75"></span>
                 <span className="h-1 w-1 bg-slate-500 rounded-full animate-bounce delay-150"></span>
-                AI Customer Support is thinking...
+                ResolveAI is thinking...
               </div>
             )}
             
@@ -1397,13 +1397,13 @@ function DashboardComponent() {
         <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/98 backdrop-blur-md transition-all duration-1000 transform grid-bg-pan ${fadeIntro ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'}`}>
           <div className="max-w-2xl px-6 text-center">
             <SplitText
-              text="Welcome to resolveAI"
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400 leading-tight drop-shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+              text="Welcome to ResolveAI"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-center text-white leading-tight drop-shadow-[0_0_30px_rgba(99,102,241,0.7)]"
               delay={40}
               duration={0.7}
               ease="power3.out"
               tag="h1"
-              from={{ opacity: 0, y: 30 }}
+              from={{ opacity: 0, y: 35 }}
               to={{ opacity: 1, y: 0 }}
               textAlign="center"
               onLetterAnimationComplete={handleIntroAnimationComplete}

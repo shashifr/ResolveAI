@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Customer Support — Autonomous Customer Support Console",
+  title: "ResolveAI — Autonomous Customer Support Console",
   description: "Confidence-gated customer support agent with cryptographic-style audit logs and cost routing.",
 };
 
