@@ -105,6 +105,10 @@ function DashboardComponent() {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Intro splash overlay states
+  const [showIntro, setShowIntro] = useState(true);
+  const [fadeIntro, setFadeIntro] = useState(false);
+
   // Email simulation states
   const [isEmailSimOpen, setIsEmailSimOpen] = useState(false);
   const [emailForm, setEmailForm] = useState({
@@ -160,6 +164,10 @@ function DashboardComponent() {
   };
 
   useEffect(() => {
+    const hasSeenIntro = sessionStorage.getItem("hasSeenIntro");
+    if (hasSeenIntro) {
+      setShowIntro(false);
+    }
     fetchData();
     const interval = setInterval(fetchData, 4000);
     return () => clearInterval(interval);
@@ -474,6 +482,17 @@ function DashboardComponent() {
 
         {/* Action Triggers */}
         <div className="flex items-center gap-1.5 sm:gap-3">
+          <button 
+            onClick={() => {
+              setFadeIntro(false);
+              setShowIntro(true);
+            }}
+            className="flex items-center gap-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-xs font-semibold text-slate-200 p-2 sm:px-3 sm:py-2 transition-all cursor-pointer"
+            title="Replay Intro Splash"
+          >
+            <RotateCw className="h-4 w-4 text-purple-400" />
+            <span className="hidden lg:inline">Replay Intro</span>
+          </button>
           <button 
             onClick={() => setIsEmailSimOpen(true)}
             className="flex items-center gap-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-xs font-semibold text-slate-200 p-2 sm:px-3.5 sm:py-2 transition-all cursor-pointer"
@@ -1360,6 +1379,78 @@ function DashboardComponent() {
                 </button>
               </>
             )}
+          </div>
+        </div>
+      )}
+      {showIntro && (
+        <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/98 backdrop-blur-md transition-all duration-1000 transform grid-bg-pan ${fadeIntro ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'}`}>
+          <div className="max-w-2xl px-6 text-center flex flex-col items-center">
+            {/* Pulsing Badge */}
+            <div className="animate-fade-in-up animate-glow-pulse flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-indigo-600/10 border border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.2)] text-indigo-400 mb-6 shrink-0">
+              <ShieldCheck className="h-9 w-9 sm:h-11 sm:w-11" />
+            </div>
+
+            {/* Glowing Text */}
+            <h1 className="animate-fade-in-up animation-delay-200 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
+              Welcome to the <br />
+              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+                Autonomous AI Customer Support
+              </span>
+              <br />Platform
+            </h1>
+
+            <p className="animate-fade-in-up animation-delay-450 text-xs sm:text-sm md:text-base text-slate-400 max-w-lg mb-8 font-medium">
+              An enterprise-grade, trust-gated customer support automation engine powered by stateful agent graphs, Mixture-of-Experts routing, and tamper-evident cryptographic log chaining.
+            </p>
+
+            {/* Feature Highlights Grid */}
+            <div className="animate-fade-in-up animation-delay-700 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg w-full mb-8 text-left">
+              <div className="flex items-start gap-2.5 bg-slate-900/50 border border-slate-800/80 rounded-xl p-3">
+                <Cpu className="h-5 w-5 text-indigo-400 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-xs font-bold text-white">LangGraph Orchestration</h3>
+                  <p className="text-[10px] text-slate-400">Stateful, multi-tier agent decision workflow.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5 bg-slate-900/50 border border-slate-800/80 rounded-xl p-3">
+                <TrendingDown className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-xs font-bold text-white">Mixture of Experts</h3>
+                  <p className="text-[10px] text-slate-400">Cost-optimized routing saves up to 80% tokens.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5 bg-slate-900/50 border border-slate-800/80 rounded-xl p-3">
+                <ShieldCheck className="h-5 w-5 text-purple-400 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-xs font-bold text-white">Cryptographic Audit</h3>
+                  <p className="text-[10px] text-slate-400">SHA-256 chained decision ledger verification.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5 bg-slate-900/50 border border-slate-800/80 rounded-xl p-3">
+                <Clock className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-xs font-bold text-white">Human Gating Console</h3>
+                  <p className="text-[10px] text-slate-400">1-click supervisor intervention & audit console.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Launch Button */}
+            <button
+              onClick={() => {
+                setFadeIntro(true);
+                sessionStorage.setItem("hasSeenIntro", "true");
+                setTimeout(() => setShowIntro(false), 1000);
+              }}
+              className="animate-fade-in-up animation-delay-1000 group relative flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 hover:scale-105 active:scale-98 font-bold text-sm text-white px-8 py-3.5 shadow-lg shadow-indigo-600/20 transition-all cursor-pointer overflow-hidden"
+            >
+              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              <span>Launch Control Console</span>
+              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
         </div>
       )}
