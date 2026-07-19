@@ -6,7 +6,9 @@ import datetime
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.database import init_db, SessionLocal
-from app.models import Customer, Order, Subscription, KnowledgeBase
+from app.models import Customer, Order, Subscription, KnowledgeBase, KBChunk
+from app.utils.chunker import chunk_kb_article
+from app.utils.embeddings import get_embedding
 
 def seed_data():
     print("Initializing Database tables...")
@@ -135,9 +137,29 @@ def seed_data():
         )
     ]
     db.add_all(faqs)
-    
     db.commit()
-    print("Database successfully seeded!")
+    
+    print("Chunking knowledge base articles and generating embeddings...")
+    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    for faq in faqs:
+        chunks_data = chunk_kb_article(
+            kb_id=faq.id,
+            category=faq.category,
+            title=faq.title,
+            content=faq.content
+        )
+        for chunk in chunks_data:
+            vector = get_embedding(chunk["content"], api_key=api_key)
+            kb_chunk = KBChunk(
+                kb_id=chunk["kb_id"],
+                chunk_index=chunk["chunk_index"],
+                content=chunk["content"],
+                metadata_json=chunk["metadata_json"],
+                embedding=vector
+            )
+            db.add(kb_chunk)
+    db.commit()
+    print("Database successfully seeded with articles, chunks, and embeddings!")
     db.close()
 
 if __name__ == "__main__":

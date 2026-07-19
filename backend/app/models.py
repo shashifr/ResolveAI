@@ -49,6 +49,20 @@ class KnowledgeBase(Base):
     category = Column(String, nullable=False) # Refund, Shipping, FAQ
     title = Column(String, nullable=False)
     content = Column(Text, nullable=False)
+    
+    chunks = relationship("KBChunk", back_populates="kb_article", cascade="all, delete-orphan")
+
+class KBChunk(Base):
+    __tablename__ = 'kb_chunks'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    kb_id = Column(Integer, ForeignKey('knowledge_base.id'), nullable=False)
+    chunk_index = Column(Integer, nullable=False)
+    content = Column(Text, nullable=False)
+    metadata_json = Column(JSON, nullable=True)
+    embedding = Column(JSON, nullable=True)
+    
+    kb_article = relationship("KnowledgeBase", back_populates="chunks")
 
 class Ticket(Base):
     __tablename__ = 'tickets'

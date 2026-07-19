@@ -40,6 +40,58 @@ graph TD
 
 ---
 
+### 🌐 Production Microservices & Closed-Loop Topology
+
+The production deployment architecture features API Gateway security, event-driven microservices decoupling (via RabbitMQ/Kafka), database encryption (AES-256 for PII), and automated self-optimizing feedback loops (dynamic `ef_search` adaptation, automated re-indexing, and embedding failover circuit breakers):
+
+```mermaid
+flowchart TD
+Customer["Customer<br>(Email/Chat/Voice)"] -->|TLS 1.3| Gateway
+Agent["Support Agent<br>(Next.js Dashboard)"] -->|JWT Auth - TLS 1.3| Gateway
+subgraph GatewayLayer ["API Gateway & Security Layer (FastAPI)"]
+Gateway["FastAPI Gateway"]
+AuthService["OAuth2 / JWT Verifier"]
+Limiter["Rate Limiter (Token Bucket)"]
+Gateway <--> AuthService
+Gateway <--> Limiter
+end
+Gateway -->|Publish Event| Broker["RabbitMQ / Kafka Broker"]
+subgraph Microservices ["Independent Worker Services"]
+ClassifierSvc["Classifier Service (Tier 0)"]
+RetrieverSvc["Context Retriever Service"]
+ResolverSvc["Resolution Service (Tier 1/2)"]
+AuditSvc["Audit Ledger Service"]
+end
+Broker -->|Consume Ingested Ticket| ClassifierSvc
+ClassifierSvc -->|Publish Classified Ticket| Broker
+Broker -->|Consume CRM-KB Fetch| RetrieverSvc
+RetrieverSvc -->|Publish Enriched Ticket| Broker
+Broker -->|Consume Resolution Flow| ResolverSvc
+ResolverSvc -->|Publish Completed Ticket| Broker
+Broker -->|Log State Change| AuditSvc
+subgraph DatabaseLayer ["Stateful Databases"]
+Postgres[("PostgreSQL DB<br>(PII AES-256 Encrypted)")]
+Redis[("Redis Cache<br>(Rate Limits & Session State)")]
+end
+Gateway <--> Redis
+RetrieverSvc <--> Postgres
+ResolverSvc <--> Postgres
+AuditSvc <--> Postgres
+Microservices -.->|OTLP Spans| OTelCollector["OpenTelemetry Collector"]
+OTelCollector -.-> LangSmith["LangSmith / Arize Phoenix"]
+subgraph OptimizationLoop ["Closed-Loop Optimizations"]
+OTelCollector --Metrics--> AdaptiveControl["Adaptive ef_search Control"]
+OTelCollector --Metrics--> IndexMaintenance["Event-Driven Index Maintenance"]
+OTelCollector --Metrics--> EmbeddingFailover["Self-Healing Failover"]
+AdaptiveControl -->redis_update_ef_search["Redis: Update ef_search"]
+IndexMaintenance -->postgres_reindex["Postgres: REINDEX"]
+EmbeddingFailover -->redis_circuit_breaker["Redis: Circuit Breaker"]
+end
+RetrieverSvc <--> AdaptiveControl
+```
+
+---
+
 ## ⚙️ Core Technical Components
 
 ### 1. LangGraph State Machine Flow
