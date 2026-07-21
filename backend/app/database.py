@@ -2,12 +2,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
 
-# SQLite database file path
-DATABASE_URL = "sqlite:///ai_customer_support.db"
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///ai_customer_support.db")
+
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args["check_same_thread"] = False
 
 engine = create_engine(
     DATABASE_URL, 
-    connect_args={"check_same_thread": False} # Required for SQLite with multi-threading
+    connect_args=connect_args
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -3,8 +3,9 @@ import re
 import uuid
 import datetime
 from typing import List, Dict, Any, Optional
-from fastapi import FastAPI, Depends, HTTPException, Body
+from fastapi import FastAPI, Depends, HTTPException, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -12,6 +13,10 @@ from app.database import get_db, init_db, SessionLocal
 from app.models import Ticket, Message, AuditLog, Customer, Order, Subscription
 from app.graph import run_support_flow, create_audit_entry, ACTION_THRESHOLDS
 from app.tools import issue_refund, cancel_subscription
+from app.utils.logging_config import setup_structured_logging, correlation_id_ctx
+
+# Initialize structured JSON logging
+setup_structured_logging()
 
 app = FastAPI(title="AI Customer Support Backend API")
 
@@ -23,6 +28,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Correlation ID Middleware to trace logs across HTTP requests
+class CorrelationIDMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        correlation_id = request.headers.get("X-Correlation-ID") or str(uuid.uuid4())
+        token = correlation_id_ctx.set(correlation_id)
+        try:
+            response = await call_next(request)
+            response.headers["X-Correlation-ID"] = correlation_id
+            return response
+        finally:
+            correlation_id_ctx.reset(token)
+
+app.add_middleware(CorrelationIDMiddleware)
 
 # Startup hook to initialize db
 @app.on_event("startup")
