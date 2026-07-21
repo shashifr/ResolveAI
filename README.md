@@ -1,6 +1,6 @@
-# AI Customer Support - Agent Dashboard
+# ResolveAI — Autonomous Customer Support Console
 
-AI Customer Support is a multi-tier, Mixture-of-Experts (MoE) customer support automation system. It features a **LangGraph-powered agentic backend** and a **Next.js frontend dashboard** to manage autonomous resolutions, confidence gating, and human-in-the-loop escalations.
+**ResolveAI** is a multi-tier, Mixture-of-Experts (MoE) customer support automation system. It features a **LangGraph-powered agentic backend** and a **Next.js frontend dashboard** to manage autonomous resolutions, confidence gating, and human-in-the-loop escalations.
 
 > [!IMPORTANT]
 > **Product Requirements & Production Design:** For the complete, formal engineering requirements, CRISPE prompt engineering templates, security protocols (OAuth2/JWT, rate limiting, AES-256), and enterprise microservices decoupling specifications, please refer to the official **[Product Requirements Document (PRD.md)](file:///c:/Users/SHASHI/Desktop/ResolveAI/PRD.md)**.
@@ -9,7 +9,7 @@ AI Customer Support is a multi-tier, Mixture-of-Experts (MoE) customer support a
 
 ## 🗺️ System Overview & Architecture
 
-AI Customer Support handles incoming customer queries through multiple communication channels (Email, Live Chat, Voice), automatically resolving low-risk, high-confidence requests while escalating complex or high-risk cases to a human support agent dashboard.
+ResolveAI handles incoming customer queries through multiple communication channels (Email, Live Chat, Voice), automatically resolving low-risk, high-confidence requests while escalating complex or high-risk cases to a human support agent dashboard.
 
 ### High-Level Execution Pipeline
 
@@ -118,7 +118,7 @@ The backend processing pipeline is modeled as a stateful graph using **LangGraph
 ---
 
 ### 2. Mixture-of-Experts (MoE) Model Routing
-To optimize API costs and response latency, AI Customer Support uses a three-tier model routing hierarchy (see [llm.py](file:///c:/Users/SHASHI/Desktop/ResolveAI/backend/app/llm.py)):
+To optimize API costs and response latency, ResolveAI uses a three-tier model routing hierarchy (see [llm.py](file:///c:/Users/SHASHI/Desktop/ResolveAI/backend/app/llm.py)):
 
 | Tier | Model Class | Cost (Input/Output per 1K) | Primary Use Cases |
 | :--- | :--- | :--- | :--- |
@@ -129,7 +129,7 @@ To optimize API costs and response latency, AI Customer Support uses a three-tie
 ---
 
 ### 3. Cryptographic Audit Ledger
-For compliance, traceability, and safety, AI Customer Support implements a **cryptographic hash chain** to log agent decisions. Every state transition in the LangGraph writes an immutable block to the `audit_logs` database table.
+For compliance, traceability, and safety, ResolveAI implements a **cryptographic hash chain** to log agent decisions. Every state transition in the LangGraph writes an immutable block to the `audit_logs` database table.
 
 The hash of each log entry is mathematically chained to the previous log entry's hash using SHA-256:
 
