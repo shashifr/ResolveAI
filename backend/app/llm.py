@@ -296,7 +296,7 @@ class ModelRouter:
         else:
             print("[ModelRouter] No Gemini API key found. Sandbox simulation enabled.")
         
-    def call_gemini_api(self, prompt: str, schema: Any, model: str = "gemini-2.5-flash") -> Optional[Dict[str, Any]]:
+    def call_gemini_api(self, prompt: str, schema: Any, model: str = "gemini-1.5-flash") -> Optional[Dict[str, Any]]:
         if not self.api_key:
             return None
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.api_key}"
@@ -400,7 +400,7 @@ class ModelRouter:
                 "- \"angry_language\" (if customer uses profanity, insults, angry capitalization, or extreme frustration)\n\n"
                 "Provide a confidence score between 0.0 and 1.0 (float) for the intent classification."
             )
-            api_res = self.call_gemini_api(prompt, ClassificationResult, "gemini-2.5-flash")
+            api_res = self.call_gemini_api(prompt, ClassificationResult, "gemini-1.5-flash")
             if api_res:
                 res = api_res
                 print(f"[Gemini Classifier] Successfully classified intent: {res.get('intent')} (Conf: {res.get('confidence')})")
@@ -439,13 +439,13 @@ class ModelRouter:
             "angry_language" in classification.risk_flags
         ):
             tier = "tier_2"
-            model_id = "gemini-2.5-pro"
+            model_id = "gemini-1.5-pro"
         elif classification.intent in ["order_status", "refund_request", "shipping_delay", "subscription_cancel"]:
             tier = "tier_1"
-            model_id = "gemini-2.5-flash"
+            model_id = "gemini-1.5-flash"
         else:
             tier = "tier_0"
-            model_id = "gemini-2.5-flash"
+            model_id = "gemini-1.5-flash"
             
         pricing = MODEL_PRICING[tier]
         res = None
