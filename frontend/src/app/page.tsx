@@ -747,7 +747,7 @@ function DashboardComponent() {
         </div>
 
         {/* Right Side: Ticket Details & Audit Trace Viewer */}
-        <div className={`w-full lg:w-[480px] xl:w-[600px] border-t lg:border-t-0 border-slate-800 bg-slate-900/30 flex flex-col overflow-y-auto p-4 sm:p-6 gap-6 ${
+        <div className={`w-full lg:w-120 xl:w-150 border-t lg:border-t-0 border-slate-800 bg-slate-900/30 flex flex-col overflow-y-auto p-4 sm:p-6 gap-6 ${
           activeMobileView === "list" ? "hidden lg:flex" : "flex"
         }`}>
           {/* Mobile Back Button */}
@@ -894,7 +894,7 @@ function DashboardComponent() {
               </div>
 
               {/* Chat Thread */}
-              <div className="flex-1 border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden flex flex-col max-h-[300px]">
+              <div className="flex-1 border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden flex flex-col max-h-75">
                 <div className="bg-slate-900/60 border-b border-slate-800 px-4 py-2.5 text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                   <Inbox className="h-3.5 w-3.5 text-slate-400" />
                   Conversation Logs
@@ -1029,7 +1029,7 @@ function DashboardComponent() {
                         }`}
                       >
                         {/* Dot Indicator */}
-                        <div className={`absolute left-[-31px] top-1 h-2.5 w-2.5 rounded-full border-2 ${
+                        <div className={`absolute -left-7.75 top-1 h-2.5 w-2.5 rounded-full border-2 ${
                           log.node === "human_console" 
                             ? "bg-amber-400 border-slate-950" 
                             : isSelected 
@@ -1086,7 +1086,7 @@ function DashboardComponent() {
                     <div className="border-t border-slate-800/80 pt-2 flex flex-col gap-1 text-[10px] text-slate-500 font-mono">
                       <div className="flex items-center justify-between">
                         <span>Prev Block Hash:</span>
-                        <span className="text-slate-400 font-semibold truncate max-w-[200px]" title={selectedNodeLog.prev_hash}>
+                        <span className="text-slate-400 font-semibold truncate max-w-50" title={selectedNodeLog.prev_hash}>
                           {selectedNodeLog.prev_hash.slice(0, 16)}...
                         </span>
                       </div>
@@ -1095,7 +1095,7 @@ function DashboardComponent() {
                           <Check className="h-3 w-3 text-emerald-400" />
                           Block Ledger Hash:
                         </span>
-                        <span className="text-emerald-400 font-semibold truncate max-w-[200px]" title={selectedNodeLog.hash}>
+                        <span className="text-emerald-400 font-semibold truncate max-w-50" title={selectedNodeLog.hash}>
                           {selectedNodeLog.hash.slice(0, 16)}...
                         </span>
                       </div>
