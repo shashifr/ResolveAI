@@ -2,13 +2,18 @@ import os
 import re
 import uuid
 import datetime
+import time
+from collections import defaultdict
 from typing import List, Dict, Any, Optional
 from fastapi import FastAPI, Depends, HTTPException, Body, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db, init_db, SessionLocal
 from app.models import Ticket, Message, AuditLog, Customer, Order, Subscription
 from app.graph import run_support_flow, create_audit_entry, ACTION_THRESHOLDS
@@ -29,6 +34,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Thread-safe in-memory rate limiting map
+request_history = defaultdict(list)
+
+# Rate limiting middleware (100 requests per minute per IP)
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        client_ip = request.client.host if request.client else "unknown"
+        now = time.time()
+        minute_ago = now - 60
+        request_history[client_ip] = [t for t in request_history[client_ip] if t > minute_ago]
+        if len(request_history[client_ip]) >= 100:
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Rate limit exceeded. Maximum 100 requests per minute allowed."}
+            )
+        request_history[client_ip].append(now)
+        return await call_next(request)
+
 # Correlation ID Middleware to trace logs across HTTP requests
 class CorrelationIDMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -42,6 +65,17 @@ class CorrelationIDMiddleware(BaseHTTPMiddleware):
             correlation_id_ctx.reset(token)
 
 app.add_middleware(CorrelationIDMiddleware)
+app.add_middleware(RateLimitMiddleware)
+
+# API Security Gating Dependency
+security_scheme = HTTPBearer(auto_error=False)
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)):
+    if not credentials or credentials.credentials != settings.API_BEARER_TOKEN:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing API Authorization Bearer Token"
+        )
 
 # Startup hook to initialize db
 @app.on_event("startup")
@@ -70,7 +104,7 @@ class ActionApprovalRequest(BaseModel):
     edited_reply: Optional[str] = None
 
 # 1. Channels Simulation Endpoints
-@app.post("/api/simulate/email")
+@app.post("/api/simulate/email", dependencies=[Depends(verify_token)])
 def simulate_email(req: EmailSimulationRequest, db: Session = Depends(get_db)):
     ticket_id = f"TKT-{uuid.uuid4().hex[:8].upper()}"
     
@@ -105,7 +139,7 @@ def simulate_email(req: EmailSimulationRequest, db: Session = Depends(get_db)):
         "reply": result["final_reply"]
     }
 
-@app.post("/api/simulate/chat")
+@app.post("/api/simulate/chat", dependencies=[Depends(verify_token)])
 def simulate_chat(req: ChatSimulationRequest, db: Session = Depends(get_db)):
     is_new = False
     ticket_id = req.ticket_id
@@ -152,7 +186,7 @@ def simulate_chat(req: ChatSimulationRequest, db: Session = Depends(get_db)):
         "explanation": "" if result["is_auto_resolved"] else result["resolution"]["explanation"]
     }
 
-@app.post("/api/simulate/voice")
+@app.post("/api/simulate/voice", dependencies=[Depends(verify_token)])
 def simulate_voice(req: VoiceSimulationRequest, db: Session = Depends(get_db)):
     ticket_id = f"TKT-{uuid.uuid4().hex[:8].upper()}"
     
@@ -187,7 +221,7 @@ def simulate_voice(req: VoiceSimulationRequest, db: Session = Depends(get_db)):
     }
 
 # 2. Human Console API
-@app.get("/api/tickets")
+@app.get("/api/tickets", dependencies=[Depends(verify_token)])
 def get_tickets(db: Session = Depends(get_db)):
     tickets = db.query(Ticket).order_by(Ticket.updated_at.desc()).all()
     
@@ -211,7 +245,7 @@ def get_tickets(db: Session = Depends(get_db)):
         })
     return response
 
-@app.get("/api/tickets/{ticket_id}")
+@app.get("/api/tickets/{ticket_id}", dependencies=[Depends(verify_token)])
 def get_ticket_details(ticket_id: str, db: Session = Depends(get_db)):
     ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
     if not ticket:
@@ -319,7 +353,7 @@ def get_ticket_details(ticket_id: str, db: Session = Depends(get_db)):
         "explanation": explanation
     }
 
-@app.post("/api/tickets/{ticket_id}/action")
+@app.post("/api/tickets/{ticket_id}/action", dependencies=[Depends(verify_token)])
 def approve_escalated_action(ticket_id: str, req: ActionApprovalRequest, db: Session = Depends(get_db)):
     ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
     if not ticket:
@@ -435,7 +469,7 @@ def approve_escalated_action(ticket_id: str, req: ActionApprovalRequest, db: Ses
     
     return {"success": True, "new_status": "Resolved", "action_taken": action_audit}
 
-@app.get("/api/metrics")
+@app.get("/api/metrics", dependencies=[Depends(verify_token)])
 def get_dashboard_metrics(db: Session = Depends(get_db)):
     # 1. Total tickets
     total_tickets = db.query(Ticket).count()

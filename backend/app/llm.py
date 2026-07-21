@@ -5,6 +5,7 @@ import hashlib
 import requests
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
+from app.config import settings
 
 # Model pricing configurations (Cost per 1,000 tokens)
 MODEL_PRICING = {
@@ -289,7 +290,7 @@ class ModelRouter:
     """
     
     def __init__(self):
-        self.api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        self.api_key = settings.GEMINI_API_KEY
         self.use_real_llm = bool(self.api_key)
         if self.use_real_llm:
             print("[ModelRouter] Found Gemini API key. Real LLM execution enabled.")

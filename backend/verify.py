@@ -8,14 +8,21 @@ def send_post(endpoint, data):
     req = urllib.request.Request(
         f"{API_BASE}{endpoint}",
         data=json.dumps(data).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": "Bearer resolveai-demo-token"
+        },
         method="POST"
     )
     with urllib.request.urlopen(req) as res:
         return json.loads(res.read().decode("utf-8"))
 
 def send_get(endpoint):
-    with urllib.request.urlopen(f"{API_BASE}{endpoint}") as res:
+    req = urllib.request.Request(
+        f"{API_BASE}{endpoint}",
+        headers={"Authorization": "Bearer resolveai-demo-token"}
+    )
+    with urllib.request.urlopen(req) as res:
         return json.loads(res.read().decode("utf-8"))
 
 def run_tests():

@@ -1,0 +1,6 @@
+- [ ] Implement CI/CD Automation (.github/workflows/ci.yml)
+- [ ] Implement Centralized Configuration Management (app/config.py, database.py, llm.py)
+- [ ] Implement API Security Hardening (JWT validation, rate limiter in main.py)
+- [ ] Update frontend fetch headers to include Bearer token
+- [ ] Run backend unit tests to ensure no regressions
+- [ ] Create walkthrough.md summarizing changes

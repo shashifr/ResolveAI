@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import os
+from app.config import settings
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///ai_customer_support.db")
+DATABASE_URL = settings.DATABASE_URL
 
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):

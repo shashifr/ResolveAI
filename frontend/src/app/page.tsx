@@ -150,14 +150,19 @@ function DashboardComponent() {
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
+  const API_HEADERS = {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer resolveai-demo-token"
+  };
+
   // Fetch initial data
   const fetchData = async () => {
     try {
-      const ticketsRes = await fetch(`${backendUrl}/api/tickets`);
+      const ticketsRes = await fetch(`${backendUrl}/api/tickets`, { headers: API_HEADERS });
       const ticketsData = await ticketsRes.json();
       setTickets(ticketsData);
 
-      const metricsRes = await fetch(`${backendUrl}/api/metrics`);
+      const metricsRes = await fetch(`${backendUrl}/api/metrics`, { headers: API_HEADERS });
       const metricsData = await metricsRes.json();
       setMetrics(metricsData);
     } catch (e) {
@@ -183,7 +188,7 @@ function DashboardComponent() {
     }
     const fetchDetails = async () => {
       try {
-        const res = await fetch(`${backendUrl}/api/tickets/${selectedTicketId}`);
+        const res = await fetch(`${backendUrl}/api/tickets/${selectedTicketId}`, { headers: API_HEADERS });
         if (res.ok) {
           const data = await res.json();
           setSelectedTicketDetails(data);
@@ -212,7 +217,7 @@ function DashboardComponent() {
     try {
       const res = await fetch(`${backendUrl}/api/tickets/${selectedTicketId}/action`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: API_HEADERS,
         body: JSON.stringify({
           action,
           edited_reply: action === "edit" ? editedReplyText : null
@@ -252,7 +257,7 @@ function DashboardComponent() {
     try {
       const res = await fetch(`${backendUrl}/api/simulate/email`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: API_HEADERS,
         body: JSON.stringify({
           sender_email: emailForm.sender,
           sender_name: emailForm.sender.split("@")[0].split(".").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
@@ -337,7 +342,7 @@ function DashboardComponent() {
         try {
           const res = await fetch(`${backendUrl}/api/simulate/voice`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: API_HEADERS,
             body: JSON.stringify({
               customer_email: scenario.email,
               transcript: transcriptClean
@@ -392,7 +397,7 @@ function DashboardComponent() {
     try {
       const res = await fetch(`${backendUrl}/api/simulate/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: API_HEADERS,
         body: JSON.stringify({
           ticket_id: chatTicketId,
           customer_email: chatEmail,
@@ -426,7 +431,7 @@ function DashboardComponent() {
     if (!chatTicketId || chatStatus !== "escalated") return;
     const checkEscalatedStatus = async () => {
       try {
-        const res = await fetch(`${backendUrl}/api/tickets/${chatTicketId}`);
+        const res = await fetch(`${backendUrl}/api/tickets/${chatTicketId}`, { headers: API_HEADERS });
         if (res.ok) {
           const data = await res.json();
           if (data.status === "Resolved") {
