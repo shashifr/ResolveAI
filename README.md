@@ -98,7 +98,7 @@ RetrieverSvc <--> AdaptiveControl
 ## ⚙️ Core Technical Components
 
 ### 1. LangGraph State Machine Flow
-The backend processing pipeline is modeled as a stateful graph using **LangGraph** (see [graph.py](file:///c:/Users/SHASHI/Desktop/AI%20Customer%20Support/backend/app/graph.py)).
+The backend processing pipeline is modeled as a stateful graph using **LangGraph** (see [graph.py](file:///c:/Users/SHASHI/Desktop/ResolveAI/backend/app/graph.py)).
 
 *   **`intake_node`**: Registers the ticket and incoming customer message into the database and initializes the audit trace.
 *   **`classify_node`**: Leverages a low-cost LLM to identify the customer's intent, extract key entities (such as order IDs or subscription IDs), and check for risk flags (angry language, legal threats, high refund amount).
@@ -118,7 +118,7 @@ The backend processing pipeline is modeled as a stateful graph using **LangGraph
 ---
 
 ### 2. Mixture-of-Experts (MoE) Model Routing
-To optimize API costs and response latency, AI Customer Support uses a three-tier model routing hierarchy (see [llm.py](file:///c:/Users/SHASHI/Desktop/AI%20Customer%20Support/backend/app/llm.py)):
+To optimize API costs and response latency, AI Customer Support uses a three-tier model routing hierarchy (see [llm.py](file:///c:/Users/SHASHI/Desktop/ResolveAI/backend/app/llm.py)):
 
 | Tier | Model Class | Cost (Input/Output per 1K) | Primary Use Cases |
 | :--- | :--- | :--- | :--- |
@@ -140,7 +140,7 @@ This creates a verifiable **audit trail** that ensures execution traces cannot b
 ---
 
 ### 4. Database Schema
-The SQL database is powered by **SQLAlchemy** and **SQLite** (see [models.py](file:///c:/Users/SHASHI/Desktop/AI%20Customer%20Support/backend/app/models.py)).
+The SQL database is powered by **SQLAlchemy** and **SQLite** (see [models.py](file:///c:/Users/SHASHI/Desktop/ResolveAI/backend/app/models.py)).
 
 *   **`Customer`**: Core customer information (name, email, phone).
 *   **`Order`**: Tracks order statuses (`Shipped`, `Delivered`, `Refunded`, etc.), items bought, and tracking numbers.
@@ -154,7 +154,7 @@ The SQL database is powered by **SQLAlchemy** and **SQLite** (see [models.py](fi
 
 ## 🖥️ Next.js Frontend Dashboard Features
 
-The dashboard (see [page.tsx](file:///c:/Users/SHASHI/Desktop/AI%20Customer%20Support/frontend/src/app/page.tsx)) provides a simulator and console for testing and human verification:
+The dashboard (see [page.tsx](file:///c:/Users/SHASHI/Desktop/ResolveAI/frontend/src/app/page.tsx)) provides a simulator and console for testing and human verification:
 
 1.  **Global Metrics Bar**: Displays real-time statistics including:
     *   **Trust Autonomy Rate**: Percentage of tickets resolved without human intervention.
