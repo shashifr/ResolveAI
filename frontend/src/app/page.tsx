@@ -129,6 +129,7 @@ function DashboardComponent() {
 
   // Chat simulation states
   const [isChatWidgetOpen, setIsChatWidgetOpen] = useState(false);
+  const [isChatConnected, setIsChatConnected] = useState(false);
   const [chatEmail, setChatEmail] = useState("charlie.green@yahoo.com");
   const [chatTicketId, setChatTicketId] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<Array<{sender: 'customer' | 'agent' | 'system', content: string}>>([
@@ -377,6 +378,7 @@ function DashboardComponent() {
         { sender: 'system', content: `Connected as ${chatEmail}. Type your message below to chat with AI Customer Support.` }
       ]);
       setChatStatus("idle");
+      setIsChatConnected(true);
     }, 1000);
   };
 
@@ -1302,7 +1304,15 @@ function DashboardComponent() {
               </div>
             </div>
             <button 
-              onClick={() => setIsChatWidgetOpen(false)}
+              onClick={() => {
+                setIsChatWidgetOpen(false);
+                setIsChatConnected(false);
+                setChatEmail("charlie.green@yahoo.com");
+                setChatTicketId(null);
+                setChatMessages([
+                  { sender: 'system', content: 'Enter your email to start chatting with ResolveAI.' }
+                ]);
+              }}
               className="text-white/80 hover:text-white cursor-pointer"
             >
               <X className="h-4 w-4" />
@@ -1354,7 +1364,7 @@ function DashboardComponent() {
 
           {/* Input Panel */}
           <div className="border-t border-slate-800 p-3 bg-slate-900 flex gap-2">
-            {chatMessages.length === 1 && chatMessages[0].sender === "system" ? (
+            {!isChatConnected ? (
               <div className="w-full flex gap-2">
                 <input
                   type="email"
