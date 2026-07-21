@@ -2,6 +2,9 @@
 
 AI Customer Support is a multi-tier, Mixture-of-Experts (MoE) customer support automation system. It features a **LangGraph-powered agentic backend** and a **Next.js frontend dashboard** to manage autonomous resolutions, confidence gating, and human-in-the-loop escalations.
 
+> [!IMPORTANT]
+> **Product Requirements & Production Design:** For the complete, formal engineering requirements, CRISPE prompt engineering templates, security protocols (OAuth2/JWT, rate limiting, AES-256), and enterprise microservices decoupling specifications, please refer to the official **[Product Requirements Document (PRD.md)](file:///c:/Users/SHASHI/Desktop/ResolveAI/PRD.md)**.
+
 ---
 
 ## 🗺️ System Overview & Architecture
