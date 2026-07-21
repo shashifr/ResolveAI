@@ -1,4 +1,5 @@
 import unittest
+import unittest.mock
 import os
 import sys
 import hashlib
@@ -29,6 +30,8 @@ class TestAISupportAgent(unittest.TestCase):
         self.db.query(Ticket).delete()
         self.db.query(Order).delete()
         self.db.query(Subscription).delete()
+        self.db.query(KBChunk).delete()
+        self.db.query(KnowledgeBase).delete()
         self.db.query(Customer).delete()
         self.db.commit()
         
@@ -55,7 +58,23 @@ class TestAISupportAgent(unittest.TestCase):
             price=9.99
         )
         
-        self.db.add_all([self.order, self.subscription])
+        # Seed FAQ / Knowledge Base
+        self.faq = KnowledgeBase(
+            category="Shipping",
+            title="How long does shipping take?",
+            content="Standard shipping takes 3-5 business days."
+        )
+        
+        self.db.add_all([self.order, self.subscription, self.faq])
+        self.db.commit()
+
+        self.faq_chunk = KBChunk(
+            kb_id=self.faq.id,
+            chunk_index=0,
+            content="Standard shipping takes 3-5 business days.",
+            embedding=[0.1] * 768
+        )
+        self.db.add(self.faq_chunk)
         self.db.commit()
 
     def tearDown(self):
@@ -166,6 +185,56 @@ class TestAISupportAgent(unittest.TestCase):
         logs = self.db.query(AuditLog).filter(AuditLog.ticket_id == ticket_id).order_by(AuditLog.id.asc()).all()
         self.assertEqual(len(logs), 2)
         self.assertEqual(logs[1].prev_hash, logs[0].hash)
+
+    def test_full_support_flow_faq(self):
+        ticket_id = f"TKT-FAQ-{uuid.uuid4().hex[:4].upper()}"
+        result = run_support_flow(
+            ticket_id=ticket_id,
+            message_text="How long does shipping take?",
+            customer_email="john.doe@example.com",
+            channel="email"
+        )
+        self.assertTrue(result["is_auto_resolved"])
+        self.assertIn("Standard shipping takes 3-5 business days.", result["final_reply"])
+
+    def test_full_support_flow_refund_escalated(self):
+        ticket_id = f"TKT-REFUND-{uuid.uuid4().hex[:4].upper()}"
+        result = run_support_flow(
+            ticket_id=ticket_id,
+            message_text="I want a refund for my order ORD-9999 of $120.00",
+            customer_email="john.doe@example.com",
+            channel="email"
+        )
+        self.assertFalse(result["is_auto_resolved"])
+
+    @unittest.mock.patch('requests.post')
+    def test_real_llm_api_call(self, mock_post):
+        # Mock successful Gemini API response for intent classification
+        mock_response = unittest.mock.Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "candidates": [
+                {
+                    "content": {
+                        "parts": [
+                            {
+                                "text": '{"intent": "order_status", "confidence": 0.95, "extracted_entities": {"order_id": "ORD-9999"}, "risk_flags": []}'
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+        mock_post.return_value = mock_response
+
+        # Enable real LLM execution for this test
+        router = ModelRouter()
+        router.api_key = "MOCK_KEY"
+        router.use_real_llm = True
+
+        res = router.classify_intent("Where is my order ORD-9999?")
+        self.assertEqual(res["result"].intent, "order_status")
+        self.assertEqual(res["result"].confidence, 0.95)
 
 if __name__ == "__main__":
     unittest.main()
