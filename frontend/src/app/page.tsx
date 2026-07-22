@@ -403,8 +403,8 @@ function DashboardComponent() {
           { id: Date.now(), ticket_id: tid, sender: "customer", content: emailForm.body, timestamp: new Date().toISOString() }
         ],
         audit_logs: [
-          { id: Date.now(), ticket_id: tid, node: "intake", input_summary: emailForm.subject, model_used: "Gemini 2.5 Flash", tokens: 120, cost: 0.0001, confidence: 1.0, action_taken: "Email registered", current_hash: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" },
-          { id: Date.now() + 1, ticket_id: tid, node: "resolver", input_summary: "Escalated due to confidence < 0.85", model_used: "Claude 3.5 Sonnet", tokens: 1100, cost: 0.0145, confidence: 0.65, action_taken: "Escalated to Human Queue", current_hash: "abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678" }
+          { id: Date.now(), ticket_id: tid, node: "intake", input_summary: emailForm.subject, model_used: "Gemini 2.5 Flash", tokens: 120, cost: 0.0001, confidence: 1.0, action_taken: "Email registered", hash: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" },
+          { id: Date.now() + 1, ticket_id: tid, node: "resolver", input_summary: "Escalated due to confidence < 0.85", model_used: "Claude 3.5 Sonnet", tokens: 1100, cost: 0.0145, confidence: 0.65, action_taken: "Escalated to Human Queue", hash: "abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678" }
         ]
       };
       setSelectedTicketId(tid);
@@ -615,7 +615,7 @@ function DashboardComponent() {
             cost: 0.0001,
             confidence: 1.0,
             action_taken: "Chat message registered",
-            current_hash: "f67890123456789abcdef0123456789abcdef0123456789abcdef0123456789a"
+            hash: "f67890123456789abcdef0123456789abcdef0123456789abcdef0123456789a"
           },
           {
             id: Date.now() + 1,
@@ -627,7 +627,7 @@ function DashboardComponent() {
             cost: 0.0003,
             confidence: confidence,
             action_taken: status === "Resolved" ? "Auto-resolved & replied" : "Escalated to human queue",
-            current_hash: "7890123456789abcdef0123456789abcdef0123456789abcdef0123456789ab"
+            hash: "7890123456789abcdef0123456789abcdef0123456789abcdef0123456789ab"
           }
         ]
       };
