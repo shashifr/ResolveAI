@@ -148,6 +148,57 @@ function DashboardComponent() {
   // Mobile view state ('list' | 'details')
   const [activeMobileView, setActiveMobileView] = useState<"list" | "details">("list");
 
+  // Interactive Client-Side Demo Engine Fallback (for Vercel standalone deployment)
+  const demoStoreRef = useRef<Record<string, any>>({
+    "TKT-74758103": {
+      id: "TKT-74758103",
+      customer_email: "alice.vance@gmail.com",
+      customer_name: "Alice Vance",
+      channel: "email",
+      status: "Escalated",
+      subject: "Refund Request",
+      confidence_score: 0.65,
+      token_cost: 0.0146,
+      updated_at: new Date().toISOString(),
+      latest_message: "Hi support, I received my wireless headphones (Order ORD-1001) yesterday but the volume is extremely low in the left ear.",
+      drafted_reply: "Hi Alice, I see your order ORD-1001 for $120. Since the left earbud volume is malfunctioning, I can process a return and refund. Would you like me to issue a pre-paid return shipping label?",
+      drafted_actions: [{ action: "issue_refund", order_id: "ORD-1001", amount: 120.0 }],
+      explanation: "Confidence score 0.65 is below 0.85 threshold. Malfunctioning hardware refund request.",
+      risk_flags: ["malfunctioning_item", "refund_requested"],
+      messages: [
+        { sender: "customer", content: "Hi support, I received my wireless headphones (Order ORD-1001) yesterday but the volume is extremely low in the left ear. Can I get a refund of $120 to my card?", timestamp: new Date().toISOString() }
+      ],
+      audit_logs: [
+        { node: "intake_node", input_summary: "Ingested email ticket from alice.vance@gmail.com", model_used: "Gemini 2.5 Flash", tokens: 120, cost: 0.0001, confidence: 1.0, action_taken: "Ticket registered & audit block initialized", prev_hash: "00000000000000000000000000000000", hash: "a1b2c3d4e5f67890123456789abcdef0", timestamp: new Date().toISOString() },
+        { node: "classifier_node", input_summary: "Intent: refund_request, entities: [ORD-1001, $120]", model_used: "Gemini 2.5 Flash", tokens: 250, cost: 0.0002, confidence: 0.9, action_taken: "Classified intent as refund_request", prev_hash: "a1b2c3d4e5f67890123456789abcdef0", hash: "b2c3d4e5f67890123456789abcdef012", timestamp: new Date().toISOString() },
+        { node: "resolver_node", input_summary: "MoE Routed to Tier 2 (Frontier Model). Drafted refund reply.", model_used: "Claude 3.5 Sonnet", tokens: 1100, cost: 0.0143, confidence: 0.65, action_taken: "Drafted response; Escalated due to confidence < 0.85 threshold.", prev_hash: "b2c3d4e5f67890123456789abcdef012", hash: "c3d4e5f67890123456789abcdef01234", timestamp: new Date().toISOString() }
+      ]
+    },
+    "TKT-EA46A070": {
+      id: "TKT-EA46A070",
+      customer_email: "bob.miller@outlook.com",
+      customer_name: "Bob Miller",
+      channel: "voice",
+      status: "Escalated",
+      subject: "Refund Request",
+      confidence_score: 0.6,
+      token_cost: 0.0145,
+      updated_at: new Date().toISOString(),
+      latest_message: "Caller: Hi, I'm calling about order ORD-1003. I spent $150 on the Keyboard Pro and it is completely malfunctioning.",
+      drafted_reply: "Hi Bob, regarding your call about Keyboard Pro (Order ORD-1003) for $150, our team can assist with an exchange or replacement unit under warranty.",
+      drafted_actions: [{ action: "issue_refund", order_id: "ORD-1003", amount: 150.0 }],
+      explanation: "Confidence score 0.60 is below 0.85 threshold. Angry language and high refund amount.",
+      risk_flags: ["high_refund_value", "angry_language"],
+      messages: [
+        { sender: "customer", content: "Caller: Hi, I'm calling about order ORD-1003. I spent $150 on the Keyboard Pro and it is completely malfunctioning. I want a refund right now.", timestamp: new Date().toISOString() }
+      ],
+      audit_logs: [
+        { node: "intake_node", input_summary: "Ingested voice transcript from bob.miller@outlook.com", model_used: "Gemini 2.5 Flash", tokens: 150, cost: 0.0001, confidence: 1.0, action_taken: "Voice transcript registered", prev_hash: "00000000000000000000000000000000", hash: "d4e5f67890123456789abcdef0123456", timestamp: new Date().toISOString() },
+        { node: "resolver_node", input_summary: "MoE Routed to Tier 2. Gating: Confidence 0.60 < 0.85.", model_used: "Claude 3.5 Sonnet", tokens: 1150, cost: 0.0144, confidence: 0.6, action_taken: "Escalated to Human Queue", prev_hash: "d4e5f67890123456789abcdef0123456", hash: "e5f67890123456789abcdef012345678", timestamp: new Date().toISOString() }
+      ]
+    }
+  });
+
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
   const API_HEADERS = {
@@ -159,14 +210,49 @@ function DashboardComponent() {
   const fetchData = async () => {
     try {
       const ticketsRes = await fetch(`${backendUrl}/api/tickets`, { headers: API_HEADERS });
+      if (!ticketsRes.ok) throw new Error("Backend offline");
       const ticketsData = await ticketsRes.json();
       setTickets(ticketsData);
 
       const metricsRes = await fetch(`${backendUrl}/api/metrics`, { headers: API_HEADERS });
+      if (!metricsRes.ok) throw new Error("Metrics offline");
       const metricsData = await metricsRes.json();
       setMetrics(metricsData);
     } catch (e) {
-      console.error("Error fetching dashboard data", e);
+      // Fallback for Vercel / standalone mode
+      const allStoreDetails = Object.values(demoStoreRef.current);
+      const ticketSummaries: Ticket[] = allStoreDetails.map(d => ({
+        id: d.id,
+        customer_email: d.customer_email,
+        customer_name: d.customer_name,
+        channel: d.channel,
+        status: d.status,
+        subject: d.subject,
+        confidence_score: d.confidence_score,
+        token_cost: d.token_cost,
+        updated_at: d.updated_at,
+        latest_message: d.messages && d.messages.length > 0 ? d.messages[d.messages.length - 1].content : ""
+      })).sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+
+      setTickets(ticketSummaries);
+
+      const total = ticketSummaries.length;
+      const resolved = ticketSummaries.filter(t => t.status === "Resolved").length;
+      const auto = ticketSummaries.filter(t => t.status === "Resolved" && t.confidence_score >= 0.8).length;
+      const rate = total > 0 ? Math.round((auto / total) * 100) : 0;
+      const actualCost = ticketSummaries.reduce((sum, t) => sum + (t.token_cost || 0), 0);
+      const baseline = total * 0.08;
+
+      setMetrics({
+        total_tickets: total,
+        resolved_count: resolved,
+        autonomous_count: auto,
+        autonomy_rate: rate,
+        total_actual_cost: parseFloat(actualCost.toFixed(4)),
+        baseline_cost: parseFloat(baseline.toFixed(4)),
+        savings: parseFloat(Math.max(0, baseline - actualCost).toFixed(4)),
+        avg_resp_time_sec: 1.2
+      });
     }
   };
 
@@ -192,17 +278,26 @@ function DashboardComponent() {
         if (res.ok) {
           const data = await res.json();
           setSelectedTicketDetails(data);
-          // Set draft text for editing
           if (data.status === "Escalated") {
             setEditedReplyText(data.drafted_reply);
           }
-          // Default select the last node for detailed audit log
           if (data.audit_logs && data.audit_logs.length > 0) {
             setSelectedNodeLog(data.audit_logs[data.audit_logs.length - 1]);
           }
+        } else {
+          throw new Error("Details fetch failed");
         }
       } catch (e) {
-        console.error("Error fetching ticket details", e);
+        const fallbackDetails = demoStoreRef.current[selectedTicketId];
+        if (fallbackDetails) {
+          setSelectedTicketDetails(fallbackDetails);
+          if (fallbackDetails.status === "Escalated") {
+            setEditedReplyText(fallbackDetails.drafted_reply);
+          }
+          if (fallbackDetails.audit_logs && fallbackDetails.audit_logs.length > 0) {
+            setSelectedNodeLog(fallbackDetails.audit_logs[fallbackDetails.audit_logs.length - 1]);
+          }
+        }
       }
     };
     fetchDetails();
@@ -226,9 +321,24 @@ function DashboardComponent() {
       if (res.ok) {
         setIsEditingReply(false);
         fetchData();
+        return;
       }
+      throw new Error("Action failed");
     } catch (e) {
-      console.error("Action submit error", e);
+      const t = demoStoreRef.current[selectedTicketId];
+      if (t) {
+        t.status = "Resolved";
+        const reply = action === "edit" ? editedReplyText : t.drafted_reply || "Action approved by agent.";
+        t.messages.push({
+          id: Date.now(),
+          ticket_id: selectedTicketId,
+          sender: "agent",
+          content: reply,
+          timestamp: new Date().toISOString()
+        });
+        setIsEditingReply(false);
+        fetchData();
+      }
     } finally {
       setActionLoading(false);
     }
@@ -270,9 +380,36 @@ function DashboardComponent() {
         setSelectedTicketId(data.ticket_id);
         setActiveMobileView("details");
         fetchData();
+        return;
       }
+      throw new Error("Email endpoint offline");
     } catch (e) {
-      console.error("Error sending simulated email", e);
+      const tid = `TKT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      demoStoreRef.current[tid] = {
+        id: tid,
+        customer_email: emailForm.sender,
+        customer_name: emailForm.sender.split("@")[0].split(".").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+        channel: "email",
+        status: "Escalated",
+        subject: emailForm.subject,
+        confidence_score: 0.65,
+        token_cost: 0.0146,
+        updated_at: new Date().toISOString(),
+        drafted_reply: "Hi Alice, I see your order ORD-1001 for $120. Since the left earbud volume is malfunctioning, I can process a return and refund. Would you like me to issue a pre-paid return shipping label?",
+        action_type: "issue_refund",
+        action_params: { order_id: "ORD-1001", amount: 120.0 },
+        risk_flags: ["malfunctioning_item", "refund_requested"],
+        messages: [
+          { id: Date.now(), ticket_id: tid, sender: "customer", content: emailForm.body, timestamp: new Date().toISOString() }
+        ],
+        audit_logs: [
+          { id: Date.now(), ticket_id: tid, node: "intake_node", input_summary: emailForm.subject, model_used: "Gemini 2.5 Flash", tokens: 120, cost: 0.0001, confidence: 1.0, action_taken: "Email registered", current_hash: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" },
+          { id: Date.now() + 1, ticket_id: tid, node: "resolver_node", input_summary: "Escalated due to confidence < 0.85", model_used: "Claude 3.5 Sonnet", tokens: 1100, cost: 0.0145, confidence: 0.65, action_taken: "Escalated to Human Queue", current_hash: "abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678" }
+        ]
+      };
+      setSelectedTicketId(tid);
+      setActiveMobileView("details");
+      fetchData();
     } finally {
       setSimulatingStep(null);
       setLoading(false);
@@ -419,10 +556,94 @@ function DashboardComponent() {
           setChatMessages(prev => [...prev, { sender: 'agent', content: data.reply }]);
         }
         fetchData();
+        return;
       }
+      throw new Error("Chat endpoint offline");
     } catch (e) {
-      console.error(e);
-      setChatStatus("idle");
+      // Fallback for Vercel / offline mode
+      const isShippingQuery = /deliver|shipping|order|days|track|package|when/i.test(userMsg);
+      const isRefundQuery = /refund|money|cancel|return/i.test(userMsg);
+
+      const tid = chatTicketId || `TKT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      setChatTicketId(tid);
+
+      let status: "Open" | "Escalated" | "Resolved" = "Resolved";
+      let confidence = 0.95;
+      let reply = "Standard shipping takes 3-5 business days. Express shipping takes 1-2 business days. Tracking details are available in your account dashboard.";
+
+      if (isRefundQuery) {
+        status = "Escalated";
+        confidence = 0.55;
+        reply = "Hi Customer, thank you for contacting support. I have registered your request and escalated it to our support queue for agent review.";
+      } else if (!isShippingQuery) {
+        confidence = 0.90;
+        reply = "Thank you for reaching out to AI Customer Support! We have processed your query.";
+      }
+
+      const existing = demoStoreRef.current[tid];
+      const newMsgs = existing
+        ? [...existing.messages, { id: Date.now(), ticket_id: tid, sender: "customer" as const, content: userMsg, timestamp: new Date().toISOString() }]
+        : [{ id: Date.now(), ticket_id: tid, sender: "customer" as const, content: userMsg, timestamp: new Date().toISOString() }];
+
+      if (status === "Resolved") {
+        newMsgs.push({ id: Date.now() + 1, ticket_id: tid, sender: "agent" as const, content: reply, timestamp: new Date().toISOString() });
+      }
+
+      demoStoreRef.current[tid] = {
+        id: tid,
+        customer_email: chatEmail,
+        customer_name: "Chat Customer",
+        channel: "chat",
+        status: status,
+        subject: isShippingQuery ? "Shipping Inquiry" : isRefundQuery ? "Refund Inquiry" : "General FAQ",
+        confidence_score: confidence,
+        token_cost: 0.0004,
+        updated_at: new Date().toISOString(),
+        drafted_reply: reply,
+        action_type: null,
+        action_params: null,
+        risk_flags: isRefundQuery ? ["refund_requested"] : [],
+        messages: newMsgs,
+        audit_logs: [
+          {
+            id: Date.now(),
+            ticket_id: tid,
+            node: "intake_node",
+            input_summary: `Live Chat: "${userMsg}"`,
+            model_used: "Gemini 2.5 Flash",
+            tokens: 80,
+            cost: 0.0001,
+            confidence: 1.0,
+            action_taken: "Chat message registered",
+            current_hash: "f67890123456789abcdef0123456789abcdef0123456789abcdef0123456789a"
+          },
+          {
+            id: Date.now() + 1,
+            ticket_id: tid,
+            node: "resolver_node",
+            input_summary: `MoE Resolved intent. Confidence: ${confidence}`,
+            model_used: "Gemini 2.5 Flash",
+            tokens: 300,
+            cost: 0.0003,
+            confidence: confidence,
+            action_taken: status === "Resolved" ? "Auto-resolved & replied" : "Escalated to human queue",
+            current_hash: "7890123456789abcdef0123456789abcdef0123456789abcdef0123456789ab"
+          }
+        ]
+      };
+
+      if (status === "Escalated") {
+        setChatStatus("escalated");
+        setChatMessages(prev => [...prev, {
+          sender: 'system',
+          content: `Confidence scored: ${confidence}. Drafted action escalated to Human Queue for verification.`
+        }]);
+      } else {
+        setChatStatus("idle");
+        setChatMessages(prev => [...prev, { sender: 'agent', content: reply }]);
+      }
+
+      fetchData();
     }
   };
 
@@ -442,9 +663,19 @@ function DashboardComponent() {
               setChatStatus("idle");
             }
           }
+        } else {
+          throw new Error("Chat status check failed");
         }
       } catch (e) {
-        console.error(e);
+        const localDetails = demoStoreRef.current[chatTicketId];
+        if (localDetails && localDetails.status === "Resolved") {
+          const agentMsgs = localDetails.messages.filter((m: any) => m.sender === "agent");
+          const lastAgentMsg = agentMsgs[agentMsgs.length - 1];
+          if (lastAgentMsg) {
+            setChatMessages(prev => [...prev, { sender: 'agent', content: lastAgentMsg.content }]);
+            setChatStatus("idle");
+          }
+        }
       }
     };
     const interval = setInterval(checkEscalatedStatus, 2000);
