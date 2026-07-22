@@ -4,6 +4,8 @@
 
 > [!IMPORTANT]
 > **Product Requirements & Production Design:** For the complete, formal engineering requirements, CRISPE prompt engineering templates, security protocols (OAuth2/JWT, rate limiting, AES-256), and enterprise microservices decoupling specifications, please refer to the official **[Product Requirements Document (PRD.md)](file:///c:/Users/SHASHI/Desktop/ResolveAI/PRD.md)**.
+> 
+> **Hackathon Submission Report & Working Process PDF**: Please see the **`submission_report.md`** and **`working_process.pdf`** documents in the repository root for our detailed evaluation criteria, latency analysis, and architectural walkthroughs.
 
 ---
 
@@ -43,67 +45,15 @@ graph TD
 
 ---
 
-### 🌐 Production Microservices & Closed-Loop Topology
-
-The production deployment architecture features API Gateway security, event-driven microservices decoupling (via RabbitMQ/Kafka), database encryption (AES-256 for PII), and automated self-optimizing feedback loops (dynamic `ef_search` adaptation, automated re-indexing, and embedding failover circuit breakers):
-
-```mermaid
-flowchart TD
-Customer["Customer<br>(Email/Chat/Voice)"] -->|TLS 1.3| Gateway
-Agent["Support Agent<br>(Next.js Dashboard)"] -->|JWT Auth - TLS 1.3| Gateway
-subgraph GatewayLayer ["API Gateway & Security Layer (FastAPI)"]
-Gateway["FastAPI Gateway"]
-AuthService["OAuth2 / JWT Verifier"]
-Limiter["Rate Limiter (Token Bucket)"]
-Gateway <--> AuthService
-Gateway <--> Limiter
-end
-Gateway -->|Publish Event| Broker["RabbitMQ / Kafka Broker"]
-subgraph Microservices ["Independent Worker Services"]
-ClassifierSvc["Classifier Service (Tier 0)"]
-RetrieverSvc["Context Retriever Service"]
-ResolverSvc["Resolution Service (Tier 1/2)"]
-AuditSvc["Audit Ledger Service"]
-end
-Broker -->|Consume Ingested Ticket| ClassifierSvc
-ClassifierSvc -->|Publish Classified Ticket| Broker
-Broker -->|Consume CRM-KB Fetch| RetrieverSvc
-RetrieverSvc -->|Publish Enriched Ticket| Broker
-Broker -->|Consume Resolution Flow| ResolverSvc
-ResolverSvc -->|Publish Completed Ticket| Broker
-Broker -->|Log State Change| AuditSvc
-subgraph DatabaseLayer ["Stateful Databases"]
-Postgres[("PostgreSQL DB<br>(PII AES-256 Encrypted)")]
-Redis[("Redis Cache<br>(Rate Limits & Session State)")]
-end
-Gateway <--> Redis
-RetrieverSvc <--> Postgres
-ResolverSvc <--> Postgres
-AuditSvc <--> Postgres
-Microservices -.->|OTLP Spans| OTelCollector["OpenTelemetry Collector"]
-OTelCollector -.-> LangSmith["LangSmith / Arize Phoenix"]
-subgraph OptimizationLoop ["Closed-Loop Optimizations"]
-OTelCollector --Metrics--> AdaptiveControl["Adaptive ef_search Control"]
-OTelCollector --Metrics--> IndexMaintenance["Event-Driven Index Maintenance"]
-OTelCollector --Metrics--> EmbeddingFailover["Self-Healing Failover"]
-AdaptiveControl -->redis_update_ef_search["Redis: Update ef_search"]
-IndexMaintenance -->postgres_reindex["Postgres: REINDEX"]
-EmbeddingFailover -->redis_circuit_breaker["Redis: Circuit Breaker"]
-end
-RetrieverSvc <--> AdaptiveControl
-```
-
----
-
 ## ⚙️ Core Technical Components
 
 ### 1. LangGraph State Machine Flow
-The backend processing pipeline is modeled as a stateful graph using **LangGraph** (see [graph.py](file:///c:/Users/SHASHI/Desktop/ResolveAI/backend/app/graph.py)).
+The backend processing pipeline is modeled as a stateful graph using **LangGraph** (see `backend/app/graph.py`).
 
 *   **`intake_node`**: Registers the ticket and incoming customer message into the database and initializes the audit trace.
 *   **`classify_node`**: Leverages a low-cost LLM to identify the customer's intent, extract key entities (such as order IDs or subscription IDs), and check for risk flags (angry language, legal threats, high refund amount).
 *   **`context_retriever_node`**: Looks up the customer's CRM profile, including order history and subscriptions, and queries the local SQLite knowledge base for relevant FAQ articles.
-*   **`resolve_node`**: Routes the request to the appropriate LLM tier based on intent and risk. The chosen LLM formulates a draft response and proposes system actions (like issuing refunds or cancelling subscriptions).
+*   **`resolve_node`**: Routes the request to the appropriate LLM tier based on intent and risk. The chosen LLM formulates a draft response and proposes system actions (like issuing refunds or canceling subscriptions).
 *   **`gate_node`**: Decides whether the resolution meets the confidence threshold. The threshold is intent-specific:
     *   `order_status`: `0.80`
     *   `refund_request`: `0.85`
@@ -118,13 +68,13 @@ The backend processing pipeline is modeled as a stateful graph using **LangGraph
 ---
 
 ### 2. Mixture-of-Experts (MoE) Model Routing
-To optimize API costs and response latency, ResolveAI uses a three-tier model routing hierarchy (see [llm.py](file:///c:/Users/SHASHI/Desktop/ResolveAI/backend/app/llm.py)):
+To optimize API costs and response latency, ResolveAI uses a three-tier model routing hierarchy (see `backend/app/llm.py`):
 
 | Tier | Model Class | Cost (Input/Output per 1K) | Primary Use Cases |
 | :--- | :--- | :--- | :--- |
-| **Tier 0** | **Haiku-class (Cheap)** | \$0.00025 / \$0.00125 | Classification, General FAQs, simple queries |
-| **Tier 1** | **Sonnet-class (Standard)** | \$0.00300 / \$0.01500 | Standard transactions (Order Status, low-value refunds, shipping delay) |
-| **Tier 2** | **Opus-class (Frontier)** | \$0.01500 / \$0.07500 | High-risk scenarios (Legal threats, angry customers, high-value refunds, low classification confidence) |
+| **Tier 0** | **Haiku-class (Cheap)** | $0.00025 / $0.00125 | Classification, General FAQs, simple queries |
+| **Tier 1** | **Sonnet-class (Standard)** | $0.00300 / $0.01500 | Standard transactions (Order Status, low-value refunds, shipping delay) |
+| **Tier 2** | **Opus-class (Frontier)** | $0.01500 / $0.07500 | High-risk scenarios (Legal threats, angry customers, high-value refunds, low classification confidence) |
 
 ---
 
@@ -139,36 +89,23 @@ This creates a verifiable **audit trail** that ensures execution traces cannot b
 
 ---
 
-### 4. Database Schema
-The SQL database is powered by **SQLAlchemy** and **SQLite** (see [models.py](file:///c:/Users/SHASHI/Desktop/ResolveAI/backend/app/models.py)).
+### 4. Enterprise DevOps & Security Hardening
+ResolveAI employs enterprise-grade infrastructure configurations:
 
-*   **`Customer`**: Core customer information (name, email, phone).
-*   **`Order`**: Tracks order statuses (`Shipped`, `Delivered`, `Refunded`, etc.), items bought, and tracking numbers.
-*   **`Subscription`**: Active/cancelled plans for digital suites or cloud services.
-*   **`KnowledgeBase`**: Knowledge articles categorized by FAQ, Shipping, and Refund topics.
-*   **`Ticket`**: Support requests including channel (email, chat, voice), status (Open, Escalated, Resolved), confidence metrics, and accumulated token costs.
-*   **`Message`**: Conversational records mapping to tickets.
-*   **`AuditLog`**: Stores the cryptographic blocks (`hash` and `prev_hash`) for each agent decision step.
+*   **CI/CD Quality Gates**: Fully automated GitHub Actions pipelines (`.github/workflows/ci.yml` and `cd.yml`) running `pytest` coverage matrices and automated Docker deployments on release tags.
+*   **Database Reliability**: The backend seamlessly supports local development using `sqlite` while connecting to scalable `Supabase PostgreSQL` in production environments through dynamic configuration injection via `pydantic-settings`.
+*   **API Security**: Implements strict `SecurityHeadersMiddleware`, Proxy IP-aware `RateLimitMiddleware`, and locked-down CORS policies inside `backend/app/main.py`.
+*   **Dependabot**: Automated weekly vulnerability scanning and dependency updates for both Node.js (npm) and Python (pip) ecosystems.
 
 ---
 
 ## 🖥️ Next.js Frontend Dashboard Features
 
-The dashboard (see [page.tsx](file:///c:/Users/SHASHI/Desktop/ResolveAI/frontend/src/app/page.tsx)) provides a simulator and console for testing and human verification:
+The dashboard provides a simulator and console for testing and human verification:
 
-1.  **Global Metrics Bar**: Displays real-time statistics including:
-    *   **Trust Autonomy Rate**: Percentage of tickets resolved without human intervention.
-    *   **Total Cost Saved**: Actual API token cost compared to a baseline where all queries are routed to Tier 2 (Opus).
-    *   **Average Response Time**: Displays the contrast between 2-second autonomous replies and human-in-the-loop processing.
-2.  **Channel Simulators**:
-    *   **Email Simulator**: Allows custom query typing and displays step-by-step visual tracking of the LangGraph execution.
-    *   **Voice Simulator**: Plays back text-to-speech style scripts (such as angry refund demands) and passes transcripts to the intake pipeline.
-    *   **Live Chat Simulator**: Simulates a live chat widget where tickets remain open, updating dynamically once a human approves an escalation from the dashboard.
-3.  **Human Console Interventions**:
-    *   Shows a list of pending escalated tickets.
-    *   Displays full customer profiles, transaction details, and order timelines alongside the query.
-    *   Shows the exact system-drafted reply and proposed tools (e.g. `issue_refund` for \$120).
-    *   Allows the human agent to **Approve** (runs the tools), **Edit** the message draft, or **Reject** the request.
+1.  **Global Metrics Bar**: Displays real-time statistics including Trust Autonomy Rate, Total Cost Saved, and Average Response Time.
+2.  **Channel Simulators**: Includes an Email, Voice, and Live Chat simulator for deep, real-time testing of LangGraph behaviors and AI responses.
+3.  **Human Console Interventions**: Allows human agents to review escalated tickets, inspect customer transaction histories, and safely click to **Approve**, **Edit**, or **Reject** proposed agent actions.
 
 ---
 
@@ -216,9 +153,9 @@ The dashboard (see [page.tsx](file:///c:/Users/SHASHI/Desktop/ResolveAI/frontend
     ```
 4.  Open your browser and navigate to [http://localhost:3000](http://localhost:3000).
 
-### 3. Verify Integration & Crypto Chain
-To run automated integration tests checking the routing logic, database updates, and cryptographic ledger chaining:
+### 3. Automated Testing
+Run the complete backend test suite (unit tests and LangGraph simulations):
 ```bash
 cd backend
-python verify.py
+python -m pytest test_main.py test_agent.py -v
 ```
