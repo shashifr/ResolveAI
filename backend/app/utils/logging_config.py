@@ -1,35 +1,27 @@
 import logging
-import json
 from contextvars import ContextVar
+from pythonjsonlogger import jsonlogger
 
 # Thread-safe context variable to store correlation IDs
 correlation_id_ctx: ContextVar[str] = ContextVar("correlation_id", default="")
 
-class JSONFormatter(logging.Formatter):
-    def format(self, record: logging.LogRecord) -> str:
-        log_record = {
-            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%SZ"),
-            "level": record.levelname,
-            "message": record.getMessage(),
-            "module": record.module,
-            "line": record.lineno,
-        }
-        
-        # Inject correlation ID if available in context
+class CustomJsonFormatter(jsonlogger.JsonFormatter):
+    def add_fields(self, log_record, record, message_dict):
+        super().add_fields(log_record, record, message_dict)
         c_id = correlation_id_ctx.get()
         if c_id:
             log_record["correlation_id"] = c_id
-            
-        # Capture stack traces if present
-        if record.exc_info:
-            log_record["exception"] = self.formatException(record.exc_info)
-            
-        return json.dumps(log_record)
 
 def setup_structured_logging():
     # Console Stream Handler
     stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(JSONFormatter())
+    
+    # Standard JSON Formatter replacing custom dict formatting
+    formatter = CustomJsonFormatter(
+        "%(asctime)s %(levelname)s %(message)s %(module)s %(lineno)d",
+        rename_fields={"asctime": "timestamp", "levelname": "level"}
+    )
+    stream_handler.setFormatter(formatter)
     
     # Configure Root Logger
     root_logger = logging.getLogger()

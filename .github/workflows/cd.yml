@@ -1,0 +1,31 @@
+name: Continuous Deployment (CD)
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Backend Docker Image
+        run: |
+          docker build -t resolveai-backend:latest ./backend
+          
+      - name: Deploy Backend
+        run: echo "Simulating deployment to AWS/GCP"
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Frontend Docker Image
+        run: |
+          docker build -t resolveai-frontend:latest ./frontend
+          
+      - name: Deploy Frontend
+        run: echo "Simulating deployment to Vercel/Netlify"
