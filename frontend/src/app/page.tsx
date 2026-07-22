@@ -1318,7 +1318,7 @@ function DashboardComponent() {
                       <div className="flex items-center justify-between">
                         <span>Prev Block Hash:</span>
                         <span className="text-slate-400 font-semibold truncate max-w-50" title={selectedNodeLog.prev_hash}>
-                          {selectedNodeLog.prev_hash.slice(0, 16)}...
+                          {selectedNodeLog.prev_hash?.slice(0, 16) || "0000000000000000"}...
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -1327,7 +1327,7 @@ function DashboardComponent() {
                           Block Ledger Hash:
                         </span>
                         <span className="text-emerald-400 font-semibold truncate max-w-50" title={selectedNodeLog.hash}>
-                          {selectedNodeLog.hash.slice(0, 16)}...
+                          {selectedNodeLog.hash?.slice(0, 16) || "0000000000000000"}...
                         </span>
                       </div>
                     </div>
