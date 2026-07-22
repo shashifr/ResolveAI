@@ -169,9 +169,9 @@ function DashboardComponent() {
         { sender: "customer", content: "Hi support, I received my wireless headphones (Order ORD-1001) yesterday but the volume is extremely low in the left ear. Can I get a refund of $120 to my card?", timestamp: new Date().toISOString() }
       ],
       audit_logs: [
-        { node: "intake_node", input_summary: "Ingested email ticket from alice.vance@gmail.com", model_used: "Gemini 2.5 Flash", tokens: 120, cost: 0.0001, confidence: 1.0, action_taken: "Ticket registered & audit block initialized", prev_hash: "00000000000000000000000000000000", hash: "a1b2c3d4e5f67890123456789abcdef0", timestamp: new Date().toISOString() },
-        { node: "classifier_node", input_summary: "Intent: refund_request, entities: [ORD-1001, $120]", model_used: "Gemini 2.5 Flash", tokens: 250, cost: 0.0002, confidence: 0.9, action_taken: "Classified intent as refund_request", prev_hash: "a1b2c3d4e5f67890123456789abcdef0", hash: "b2c3d4e5f67890123456789abcdef012", timestamp: new Date().toISOString() },
-        { node: "resolver_node", input_summary: "MoE Routed to Tier 2 (Frontier Model). Drafted refund reply.", model_used: "Claude 3.5 Sonnet", tokens: 1100, cost: 0.0143, confidence: 0.65, action_taken: "Drafted response; Escalated due to confidence < 0.85 threshold.", prev_hash: "b2c3d4e5f67890123456789abcdef012", hash: "c3d4e5f67890123456789abcdef01234", timestamp: new Date().toISOString() }
+        { node: "intake", input_summary: "Ingested email ticket from alice.vance@gmail.com", model_used: "Gemini 2.5 Flash", tokens: 120, cost: 0.0001, confidence: 1.0, action_taken: "Ticket registered & audit block initialized", prev_hash: "00000000000000000000000000000000", hash: "a1b2c3d4e5f67890123456789abcdef0", timestamp: new Date().toISOString() },
+        { node: "classifier", input_summary: "Intent: refund_request, entities: [ORD-1001, $120]", model_used: "Gemini 2.5 Flash", tokens: 250, cost: 0.0002, confidence: 0.9, action_taken: "Classified intent as refund_request. Risk flags: [malfunctioning_item, refund_requested]", prev_hash: "a1b2c3d4e5f67890123456789abcdef0", hash: "b2c3d4e5f67890123456789abcdef012", timestamp: new Date().toISOString() },
+        { node: "resolver", input_summary: "MoE Routed to Tier 2 (Frontier Model). Drafted refund reply.", model_used: "Claude 3.5 Sonnet", tokens: 1100, cost: 0.0143, confidence: 0.65, action_taken: "Drafted response; Escalated due to confidence < 0.85 threshold.", prev_hash: "b2c3d4e5f67890123456789abcdef012", hash: "c3d4e5f67890123456789abcdef01234", timestamp: new Date().toISOString() }
       ]
     },
     "TKT-EA46A070": {
@@ -193,8 +193,8 @@ function DashboardComponent() {
         { sender: "customer", content: "Caller: Hi, I'm calling about order ORD-1003. I spent $150 on the Keyboard Pro and it is completely malfunctioning. I want a refund right now.", timestamp: new Date().toISOString() }
       ],
       audit_logs: [
-        { node: "intake_node", input_summary: "Ingested voice transcript from bob.miller@outlook.com", model_used: "Gemini 2.5 Flash", tokens: 150, cost: 0.0001, confidence: 1.0, action_taken: "Voice transcript registered", prev_hash: "00000000000000000000000000000000", hash: "d4e5f67890123456789abcdef0123456", timestamp: new Date().toISOString() },
-        { node: "resolver_node", input_summary: "MoE Routed to Tier 2. Gating: Confidence 0.60 < 0.85.", model_used: "Claude 3.5 Sonnet", tokens: 1150, cost: 0.0144, confidence: 0.6, action_taken: "Escalated to Human Queue", prev_hash: "d4e5f67890123456789abcdef0123456", hash: "e5f67890123456789abcdef012345678", timestamp: new Date().toISOString() }
+        { node: "intake", input_summary: "Ingested voice transcript from bob.miller@outlook.com", model_used: "Gemini 2.5 Flash", tokens: 150, cost: 0.0001, confidence: 1.0, action_taken: "Voice transcript registered", prev_hash: "00000000000000000000000000000000", hash: "d4e5f67890123456789abcdef0123456", timestamp: new Date().toISOString() },
+        { node: "resolver", input_summary: "MoE Routed to Tier 2. Gating: Confidence 0.60 < 0.85.", model_used: "Claude 3.5 Sonnet", tokens: 1150, cost: 0.0144, confidence: 0.6, action_taken: "Escalated to Human Queue", prev_hash: "d4e5f67890123456789abcdef0123456", hash: "e5f67890123456789abcdef012345678", timestamp: new Date().toISOString() }
       ]
     }
   });
@@ -403,8 +403,8 @@ function DashboardComponent() {
           { id: Date.now(), ticket_id: tid, sender: "customer", content: emailForm.body, timestamp: new Date().toISOString() }
         ],
         audit_logs: [
-          { id: Date.now(), ticket_id: tid, node: "intake_node", input_summary: emailForm.subject, model_used: "Gemini 2.5 Flash", tokens: 120, cost: 0.0001, confidence: 1.0, action_taken: "Email registered", current_hash: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" },
-          { id: Date.now() + 1, ticket_id: tid, node: "resolver_node", input_summary: "Escalated due to confidence < 0.85", model_used: "Claude 3.5 Sonnet", tokens: 1100, cost: 0.0145, confidence: 0.65, action_taken: "Escalated to Human Queue", current_hash: "abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678" }
+          { id: Date.now(), ticket_id: tid, node: "intake", input_summary: emailForm.subject, model_used: "Gemini 2.5 Flash", tokens: 120, cost: 0.0001, confidence: 1.0, action_taken: "Email registered", current_hash: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" },
+          { id: Date.now() + 1, ticket_id: tid, node: "resolver", input_summary: "Escalated due to confidence < 0.85", model_used: "Claude 3.5 Sonnet", tokens: 1100, cost: 0.0145, confidence: 0.65, action_taken: "Escalated to Human Queue", current_hash: "abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678" }
         ]
       };
       setSelectedTicketId(tid);
@@ -608,7 +608,7 @@ function DashboardComponent() {
           {
             id: Date.now(),
             ticket_id: tid,
-            node: "intake_node",
+            node: "intake",
             input_summary: `Live Chat: "${userMsg}"`,
             model_used: "Gemini 2.5 Flash",
             tokens: 80,
@@ -620,7 +620,7 @@ function DashboardComponent() {
           {
             id: Date.now() + 1,
             ticket_id: tid,
-            node: "resolver_node",
+            node: "resolver",
             input_summary: `MoE Resolved intent. Confidence: ${confidence}`,
             model_used: "Gemini 2.5 Flash",
             tokens: 300,
@@ -1069,12 +1069,12 @@ function DashboardComponent() {
                     {/* Risk flags */}
                     <div className="flex flex-wrap gap-1.5 items-center">
                       <span className="text-slate-400">Risk Flags:</span>
-                      {selectedTicketDetails.audit_logs.find(a => a.node === "classifier")?.action_taken.includes("Risk flags: []") || 
-                       !selectedTicketDetails.audit_logs.find(a => a.node === "classifier")?.action_taken.includes("Risk flags:") ? (
+                      {selectedTicketDetails.audit_logs.find(a => a.node === "classifier" || a.node === "classifier_node")?.action_taken?.includes("Risk flags: []") || 
+                       !selectedTicketDetails.audit_logs.find(a => a.node === "classifier" || a.node === "classifier_node")?.action_taken?.includes("Risk flags:") ? (
                         <span className="text-slate-500 italic">None detected</span>
                       ) : (
                         (() => {
-                          const log = selectedTicketDetails.audit_logs.find(a => a.node === "classifier")?.action_taken || "";
+                          const log = selectedTicketDetails.audit_logs.find(a => a.node === "classifier" || a.node === "classifier_node")?.action_taken || "";
                           const flags = log.split("Risk flags:")[1]?.replace("[", "").replace("]", "").split(",") || [];
                           return flags.map((f, i) => f.trim() && (
                             <span key={i} className="inline-flex items-center rounded-md bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-medium text-rose-400 ring-1 ring-inset ring-rose-500/20">
