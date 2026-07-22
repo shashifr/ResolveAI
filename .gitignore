@@ -44,4 +44,3 @@ backend/app/create_pitch_pdf.py
 backend/app/create_working_process_pdf.py
 
 inbox_hackathon_pitch.pdf
-working_process.pdf
