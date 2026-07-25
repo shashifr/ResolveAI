@@ -72,6 +72,11 @@ def classify_intent_simulated(message_text: str) -> Dict[str, Any]:
         intent = "account_access"
         confidence = 0.90
         
+    # Small talk / Greetings
+    elif any(k in text.split() for k in ["hi", "hello", "hey", "greetings"]) or "how are you" in text:
+        intent = "small_talk"
+        confidence = 0.98
+        
     # Extract ORD-XXXX or SUB-XXXX
     order_match = re.search(r'ord-\d+', text)
     if order_match:
@@ -261,8 +266,13 @@ def generate_resolution_simulated(
         reply = f"Hi {customer_name},\n\nI understand you're having trouble accessing your account. I have triggered a password reset link to your email ({context.get('customer', {}).get('email', '')}). Please check your spam folder if you do not receive it in 5 minutes."
         explanation = "Triggered password reset. Safe to auto-resolve."
         # No database write action needed, but we simulate reset
+
+    # 6. Small Talk Intent
+    elif intent == "small_talk":
+        reply = f"Hi {customer_name},\n\nHello! How can I help you today? I can assist you with your orders, subscriptions, or answer any questions you have."
+        explanation = "User initiated small talk/greeting. Polite response generated."
         
-    # 6. General FAQ Intent
+    # 7. General FAQ Intent
     else:
         # Search KB in context
         if kb_articles:
@@ -390,6 +400,7 @@ class ModelRouter:
                 "- \"shipping_delay\" (complaining about delayed shipment or transit delays)\n"
                 "- \"subscription_cancel\" (requesting cancellation of subscription or membership)\n"
                 "- \"account_access\" (locked out, password reset, login problems)\n"
+                "- \"small_talk\" (greeting the support agent, saying hi, asking how are you, or general chit-chat)\n"
                 "- \"general_faq\" (general return policy questions, or other standard company policy questions)\n\n"
                 "Extract entities if present:\n"
                 "- \"order_id\" (format ORD-XXXX, e.g. ORD-1001)\n"
@@ -470,8 +481,9 @@ class ModelRouter:
                 "   - For cancellations: Propose cancellation of the subscription. Note: In our business rules, all subscription cancellations should be escalated to human agents for retention (confidence score should be set to 0.55).\n"
                 "   - If no order is found or if details are missing, politely ask the user for clarification in your reply and do not propose any actions. Set confidence score lower (e.g., 0.70) to escalate.\n"
                 "3. If it's a general FAQ, use the Knowledge Base article in the context to draft the reply. Set confidence high (0.95) if a good match is found, or low (0.50) if no matching article is in context.\n"
-                "4. Set the \"confidence\" score between 0.0 and 1.0 based on how confident you are that this resolution is fully correct and safe to execute automatically.\n"
-                "5. Set the \"explanation\" field to explain your reasoning (especially why you set a low confidence score or why you proposed a particular action).\n\n"
+                "4. If it's small talk or a greeting, politely greet the user back and ask how you can help them today. Set confidence high (0.95).\n"
+                "5. Set the \"confidence\" score between 0.0 and 1.0 based on how confident you are that this resolution is fully correct and safe to execute automatically.\n"
+                "6. Set the \"explanation\" field to explain your reasoning (especially why you set a low confidence score or why you proposed a particular action).\n\n"
                 "Propose actions inside the 'proposed_actions' array as objects with 'action' and 'args' fields:\n"
                 "- Example refund: {\"action\": \"issue_refund\", \"args\": {\"order_id\": \"ORD-1001\", \"amount\": 120.0, \"reason\": \"Reason details\"}}\n"
                 "- Example cancel: {\"action\": \"cancel_subscription\", \"args\": {\"subscription_id\": \"SUB-2001\", \"reason\": \"Reason details\"}}"

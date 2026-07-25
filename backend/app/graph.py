@@ -17,7 +17,8 @@ ACTION_THRESHOLDS = {
     "shipping_delay": 0.80,
     "subscription_cancel": 0.90, # retention escalation policy
     "account_access": 0.80,
-    "general_faq": 0.80
+    "general_faq": 0.80,
+    "small_talk": 0.80
 }
 
 class AgentState(TypedDict):
