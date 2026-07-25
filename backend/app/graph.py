@@ -150,7 +150,10 @@ def classify_node(state: AgentState) -> Dict[str, Any]:
 def context_retriever_node(state: AgentState) -> Dict[str, Any]:
     db = SessionLocal()
     email = state["customer_email"]
-    classification = state["classification"]
+    classification = state.get("classification")
+    if not classification:
+        raise ValueError("Classification data is missing from state")
+        
     intent = classification["intent"]
     entities = classification["extracted_entities"]
     
@@ -236,8 +239,12 @@ def resolve_node(state: AgentState) -> Dict[str, Any]:
     db = SessionLocal()
     router = ModelRouter()
     
+    classification_data = state.get("classification")
+    if not classification_data:
+        raise ValueError("Classification data is missing from state")
+        
     # Reconstruct ClassificationResult object
-    class_obj = ClassificationResult(**state["classification"])
+    class_obj = ClassificationResult(**classification_data)
     
     # Route and execute LLM call
     res = router.route_and_resolve(state["message_text"], class_obj, state["context"])
