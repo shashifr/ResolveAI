@@ -17,28 +17,47 @@ ResolveAI handles incoming customer queries through multiple communication chann
 
 ```mermaid
 graph TD
-    %% Define Channels and Intake
-    Inbound["Incoming Query (Email, Chat, Voice)"] --> IntakeNode["[1] Intake Node (Normalize & Log)"]
-    IntakeNode --> ClassifierNode["[2] Classifier Node (Intent & Risk)"]
+    classDef client fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff;
+    classDef aiNode fill:#8b5cf6,stroke:#6d28d9,stroke-width:2px,color:#fff;
+    classDef database fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff;
+    classDef human fill:#f59e0b,stroke:#b45309,stroke-width:2px,color:#fff;
+    classDef decision fill:#64748b,stroke:#475569,stroke-width:2px,color:#fff;
+
+    Inbound("Incoming Query<br/>(Email, Chat, Voice)"):::client
+
+    subgraph LangGraph Pipeline [LangGraph Processing Backend]
+        IntakeNode["1. Intake Node<br/>(Normalize & Log)"]:::aiNode
+        ClassifierNode["2. Classifier Node<br/>(Intent & Risk)"]:::aiNode
+        ContextNode["3. Context Retriever<br/>(CRM & KB)"]:::aiNode
+        ResolutionNode["4. Resolution Agent<br/>(MoE Routing)"]:::aiNode
+        GatingNode{"5. Confidence Gate"}:::decision
+        AutoResolve["6a. Auto-Execute<br/>Tools"]:::aiNode
+    end
     
-    %% Context and Resolution
-    ClassifierNode --> ContextNode["[3] Context Retriever (CRM & KB)"]
-    ContextNode --> ResolutionNode["[4] Resolution Agent (MoE Routing)"]
+    subgraph Human Intervention [Next.js Agent Dashboard]
+        EscalateQueue["6b. Escalate to<br/>Human Console"]:::human
+        HumanReview{"Human Console<br/>Review"}:::decision
+        HumanExecute["Execute Tools<br/>& Reply"]:::human
+        Rejection["Send Rejection<br/>Message"]:::human
+    end
+
+    CustomerReply("Send Reply<br/>to Customer"):::client
+
+    %% Flow
+    Inbound --> IntakeNode
+    IntakeNode --> ClassifierNode
+    ClassifierNode --> ContextNode
+    ContextNode --> ResolutionNode
+    ResolutionNode --> GatingNode
     
-    %% Gating
-    ResolutionNode --> GatingNode{"[5] Confidence Gate"}
+    GatingNode -- "Confidence >= Threshold" --> AutoResolve
+    GatingNode -- "Confidence < Threshold<br/>(or Risk Flags)" --> EscalateQueue
     
-    %% Routing Decisions
-    GatingNode -- "Confidence >= Threshold" --> AutoResolve["[6a] Auto-Execute Tools"]
-    GatingNode -- "Confidence < Threshold (or Risk Flags)" --> EscalateQueue["[6b] Escalate to Human Console"]
+    EscalateQueue --> HumanReview
+    HumanReview -- "Approve / Edit" --> HumanExecute
+    HumanReview -- "Reject" --> Rejection
     
-    %% Human Action
-    EscalateQueue --> HumanReview{"Human Console Review"}
-    HumanReview -- "Approve / Edit" --> HumanExecute["Execute Tools & Reply"]
-    HumanReview -- "Reject" --> Rejection["Send Rejection Message"]
-    
-    %% Outputs
-    AutoResolve --> CustomerReply["Send Agent Reply to Customer"]
+    AutoResolve --> CustomerReply
     HumanExecute --> CustomerReply
     Rejection --> CustomerReply
 ```
