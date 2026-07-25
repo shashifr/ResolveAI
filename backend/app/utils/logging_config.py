@@ -1,11 +1,11 @@
 import logging
 from contextvars import ContextVar
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger.json import JsonFormatter
 
 # Thread-safe context variable to store correlation IDs
 correlation_id_ctx: ContextVar[str] = ContextVar("correlation_id", default="")
 
-class CustomJsonFormatter(jsonlogger.JsonFormatter):
+class CustomJsonFormatter(JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
         super().add_fields(log_record, record, message_dict)
         c_id = correlation_id_ctx.get()

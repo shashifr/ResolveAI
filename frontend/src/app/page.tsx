@@ -1112,8 +1112,8 @@ function DashboardComponent() {
                             </div>
                             <div className="text-[10px] text-slate-400 mt-0.5">
                               {act.action === "issue_refund" 
-                                ? `Order ID: ${act.args.order_id} • Amount: $${act.args.amount}` 
-                                : `Subscription ID: ${act.args.subscription_id}`}
+                                ? `Order ID: ${act.args?.order_id || act.order_id} • Amount: $${act.args?.amount || act.amount}` 
+                                : `Subscription ID: ${act.args?.subscription_id || act.subscription_id}`}
                             </div>
                           </div>
                           <span className="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-medium">Escalated</span>

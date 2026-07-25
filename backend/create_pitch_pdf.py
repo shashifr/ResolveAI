@@ -402,11 +402,13 @@ def build_pdf(filename="inbox_hackathon_pitch.pdf"):
     story.append(Paragraph("3. Technical Architecture & MoE Tiers", h1_style))
     story.append(Paragraph("AI Customer Support uses a cost-performance optimized routing mechanism. Below is the active routing layout utilized by our LangGraph engine:", body_style))
     
+    moe_body_style = ParagraphStyle('MoEBody', parent=styles['Normal'], fontName='Helvetica', fontSize=8, leading=10, textColor=TEXT_COLOR)
+    moe_header_style = ParagraphStyle('MoEHeader', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, leading=11, textColor=WHITE)
     moe_data = [
-        ["Tier", "Model Class", "Cost (per 1K tkn In/Out)", "Primary Use Cases"],
-        ["Tier 0", "Gemini 2.5 Flash / GPT-4o-mini", "$0.00015 / $0.00060", "Adversarial screening, Intent Classification, General FAQs, routing"],
-        ["Tier 1", "Claude 3.5 Sonnet / Gemini 2.0 Pro", "$0.00300 / $0.01500", "Standard transactions (Order Status, shipping delay, MCP actions)"],
-        ["Tier 2", "OpenAI o1/o3 / Claude 4 Opus", "$0.01500 / $0.07500", "High-risk (Legal threats, high-value refunds, low-confidence reasoning)"]
+        [Paragraph("Tier", moe_header_style), Paragraph("Model Class", moe_header_style), Paragraph("Cost (per 1K tkn In/Out)", moe_header_style), Paragraph("Primary Use Cases", moe_header_style)],
+        [Paragraph("Tier 0", moe_body_style), Paragraph("Gemini 2.5 Flash / GPT-4o-mini", moe_body_style), Paragraph("$0.00015 / $0.00060", moe_body_style), Paragraph("Adversarial screening, Intent Classification, General FAQs, routing", moe_body_style)],
+        [Paragraph("Tier 1", moe_body_style), Paragraph("Claude 3.5 Sonnet / Gemini 2.0 Pro", moe_body_style), Paragraph("$0.00300 / $0.01500", moe_body_style), Paragraph("Standard transactions (Order Status, shipping delay, MCP actions)", moe_body_style)],
+        [Paragraph("Tier 2", moe_body_style), Paragraph("OpenAI o1/o3 / Claude 4 Opus", moe_body_style), Paragraph("$0.01500 / $0.07500", moe_body_style), Paragraph("High-risk (Legal threats, high-value refunds, low-confidence reasoning)", moe_body_style)]
     ]
     
     moe_table = Table(moe_data, colWidths=[55, 160, 120, 165])
@@ -433,22 +435,24 @@ def build_pdf(filename="inbox_hackathon_pitch.pdf"):
     story.append(Paragraph("<b>Closed-Loop Production Topology:</b>", h2_style))
     story.append(Paragraph("To ensure reliability and high performance under variable load, the production topology implements three automated feedback loops monitored by OpenTelemetry:", body_style))
     
+    topology_body_style = ParagraphStyle('TopologyBody', parent=styles['Normal'], fontName='Helvetica', fontSize=8, leading=10, textColor=TEXT_COLOR)
+    topology_header_style = ParagraphStyle('TopologyHeader', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8.5, leading=10.5, textColor=WHITE)
     topology_data = [
-        ["Optimization Loop", "Trigger / Metric", "Action Taken"],
+        [Paragraph("Optimization Loop", topology_header_style), Paragraph("Trigger / Metric", topology_header_style), Paragraph("Action Taken", topology_header_style)],
         [
-            "Adaptive ef_search Control",
-            "Latency spikes or high query traffic in OpenTelemetry spans.",
-            "Dynamically writes updated ef_search values to Redis cache, tuning vector retrieval speed/recall balance."
+            Paragraph("Adaptive ef_search Control", topology_body_style),
+            Paragraph("Latency spikes or high query traffic in OpenTelemetry spans.", topology_body_style),
+            Paragraph("Dynamically writes updated ef_search values to Redis cache, tuning vector retrieval speed/recall balance.", topology_body_style)
         ],
         [
-            "Event-Driven Index Maintenance",
-            "High write density or page fragmentation in DB logs.",
-            "Triggers targeted REINDEX operations on the SQLite/PostgreSQL vector tables asynchronously."
+            Paragraph("Event-Driven Index Maintenance", topology_body_style),
+            Paragraph("High write density or page fragmentation in DB logs.", topology_body_style),
+            Paragraph("Triggers targeted REINDEX operations on the SQLite/PostgreSQL vector tables asynchronously.", topology_body_style)
         ],
         [
-            "Embedding Failover",
-            "Primary embedding API failure (e.g., rate limit, 500 error).",
-            "Redis circuit breaker trips, automatically routing vector queries to secondary embedding models."
+            Paragraph("Embedding Failover", topology_body_style),
+            Paragraph("Primary embedding API failure (e.g., rate limit, 500 error).", topology_body_style),
+            Paragraph("Redis circuit breaker trips, automatically routing vector queries to secondary embedding models.", topology_body_style)
         ]
     ]
     topology_table = Table(topology_data, colWidths=[130, 150, 220])
@@ -515,27 +519,29 @@ def build_pdf(filename="inbox_hackathon_pitch.pdf"):
     story.append(Paragraph("5. Q&A Defense Playbook", h1_style))
     story.append(Paragraph("Be prepared for tough questions from the judging panel. Here are targeted defenses based on AI Customer Support's actual design:", body_style))
     
+    qa_body_style = ParagraphStyle('QABody', parent=styles['Normal'], fontName='Helvetica', fontSize=8.5, leading=11, textColor=TEXT_COLOR)
+    qa_header_style = ParagraphStyle('QAHeader', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9.5, leading=12, textColor=WHITE)
     qa_data = [
-        ["Judge's Question", "Your Bulletproof Answer"],
+        [Paragraph("Judge's Question", qa_header_style), Paragraph("Your Bulletproof Answer", qa_header_style)],
         [
-            "Why not just build a simple agent prompt?",
-            "A single prompt cannot handle multi-step workflows like database retrieval, transaction safety checks, and selective escalation. Using LangGraph, we break the workflow into distinct state machines, allowing us to enforce separate confidence gates and models for different sub-tasks."
+            Paragraph("Why not just build a simple agent prompt?", qa_body_style),
+            Paragraph("A single prompt cannot handle multi-step workflows like database retrieval, transaction safety checks, and selective escalation. Using LangGraph, we break the workflow into distinct state machines, allowing us to enforce separate confidence gates and models for different sub-tasks.", qa_body_style)
         ],
         [
-            "How does the system resist prompt injection attacks?",
-            "We implement a Dual-LLM security pipeline at the Intake node. Before the query touches the LangGraph state machine, a specialized guardrail model (Gemini 2.5 Flash trained on adversarial datasets) screens the input for override commands. If flagged, the ticket is immediately sandboxed and routed to human review without executing any tools."
+            Paragraph("How does the system resist prompt injection attacks?", qa_body_style),
+            Paragraph("We implement a Dual-LLM security pipeline at the Intake node. Before the query touches the LangGraph state machine, a specialized guardrail model (Gemini 2.5 Flash trained on adversarial datasets) screens the input for override commands. If flagged, the ticket is immediately sandboxed and routed to human review without executing any tools.", qa_body_style)
         ],
         [
-            "How can you support GDPR erasure if the ledger is immutable?",
-            "We encrypt customer PII using rotatable keys before writing to the ledger. When a deletion request is received, we shred the keys for that customer. The transaction hashes remain structurally intact to preserve ledger integrity, but all personal details become permanently unreadable mathematical noise."
+            Paragraph("How can you support GDPR erasure if the ledger is immutable?", qa_body_style),
+            Paragraph("We encrypt customer PII using rotatable keys before writing to the ledger. When a deletion request is received, we shred the keys for that customer. The transaction hashes remain structurally intact to preserve ledger integrity, but all personal details become permanently unreadable mathematical noise.", qa_body_style)
         ],
         [
-            "Why use Model Context Protocol (MCP) instead of custom connectors?",
-            "MCP provides a standardized, secure protocol for tool discovery and execution. Rather than writing custom APIs for every database or CRM, we expose them as MCP servers. This decouples the agent logic from the storage layer, enabling uniform security and monitoring."
+            Paragraph("Why use Model Context Protocol (MCP) instead of custom connectors?", qa_body_style),
+            Paragraph("MCP provides a standardized, secure protocol for tool discovery and execution. Rather than writing custom APIs for every database or CRM, we expose them as MCP servers. This decouples the agent logic from the storage layer, enabling uniform security and monitoring.", qa_body_style)
         ],
         [
-            "Is closed-loop control theory really necessary for an LLM agent?",
-            "Yes. LLM retrieval pipelines suffer from latency spikes when vector database loads increase. By monitoring OpenTelemetry metrics, our controllers dynamically write updated tuning parameters (like HNSW index ef_search) to Redis cache, balancing latency and recall automatically."
+            Paragraph("Is closed-loop control theory really necessary for an LLM agent?", qa_body_style),
+            Paragraph("Yes. LLM retrieval pipelines suffer from latency spikes when vector database loads increase. By monitoring OpenTelemetry metrics, our controllers dynamically write updated tuning parameters (like HNSW index ef_search) to Redis cache, balancing latency and recall automatically.", qa_body_style)
         ]
     ]
     
@@ -558,6 +564,60 @@ def build_pdf(filename="inbox_hackathon_pitch.pdf"):
         ('TOPPADDING', (0,1), (-1,-1), 8),
     ]))
     story.append(qa_table)
+    
+    story.append(PageBreak())
+    
+    # ------------------ SECTION 6: TECH STACK & KEYWORDS ------------------
+    story.append(Paragraph("6. Tech Stack & Key Keywords", h1_style))
+    story.append(Paragraph("Highlighting the modern tech stack and using the right keywords will demonstrate deep engineering competence to the judges. Here is what we used and why:", body_style))
+    
+    tech_stack_data = [
+        [Paragraph("Technology / Keyword", qa_header_style), Paragraph("Why We Used It (The 'Why')", qa_header_style)],
+        [
+            Paragraph("<b>LangGraph Platform</b><br/><i>(Stateful AI Workflow)</i>", qa_body_style),
+            Paragraph("Unlike standard stateless chatbots, LangGraph provides a cyclical, state machine architecture. This allows us to separate concerns (Intake, Classification, Execution) into discrete nodes, giving us absolute control over confidence gates and making the workflow resilient to hallucinations.", qa_body_style)
+        ],
+        [
+            Paragraph("<b>Mixture-of-Experts (MoE) Routing</b><br/><i>(Cost & Latency Optimization)</i>", qa_body_style),
+            Paragraph("We dynamically route queries across different LLMs (Gemini Flash, Claude Sonnet, OpenAI o1/o3) based on risk and complexity. This slashes API costs by up to 80% while retaining frontier-model reasoning for high-risk edge cases like legal threats.", qa_body_style)
+        ],
+        [
+            Paragraph("<b>Cryptographic Hash Chaining</b><br/><i>(SHA-256 Audit Ledger)</i>", qa_body_style),
+            Paragraph("To build trust with enterprise clients, every AI decision is immutably signed on an audit ledger. If the database is tampered with, the mathematical chain breaks. This guarantees accountability for autonomous actions.", qa_body_style)
+        ],
+        [
+            Paragraph("<b>Model Context Protocol (MCP)</b><br/><i>(Secure Decoupling)</i>", qa_body_style),
+            Paragraph("MCP standardizes how our AI agents interact with databases (SQLite/PostgreSQL) and external services. It acts as a secure decoupling layer, meaning the AI never executes raw SQL directly, preventing dangerous injection attacks.", qa_body_style)
+        ],
+        [
+            Paragraph("<b>FastAPI & Next.js</b><br/><i>(Enterprise-Grade Frameworks)</i>", qa_body_style),
+            Paragraph("FastAPI provides a high-concurrency async backend ideal for handling multiple AI tool calls simultaneously. Next.js gives us a robust, server-side rendered frontend to build the low-latency Human-in-the-Loop dashboard.", qa_body_style)
+        ],
+        [
+            Paragraph("<b>Dual-LLM Security Sandbox</b><br/><i>(Prompt Injection Defense)</i>", qa_body_style),
+            Paragraph("We use a separate, lightweight model explicitly trained on adversarial datasets to scrub incoming requests before they enter the main LangGraph workflow. This prevents prompt injection from hijacking the support agent.", qa_body_style)
+        ]
+    ]
+    
+    tech_table = Table(tech_stack_data, colWidths=[180, 320])
+    tech_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), PRIMARY_COLOR),
+        ('TEXTCOLOR', (0,0), (-1,0), WHITE),
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('BOTTOMPADDING', (0,0), (-1,0), 6),
+        ('TOPPADDING', (0,0), (-1,0), 6),
+        ('BACKGROUND', (0,1), (-1,-1), LIGHT_BG),
+        ('BOX', (0,0), (-1,-1), 1, BORDER_COLOR),
+        ('INNERGRID', (0,0), (-1,-1), 0.5, BORDER_COLOR),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0,0), (-1,0), 9.5),
+        ('FONTNAME', (0,1), (-1,-1), 'Helvetica'),
+        ('FONTSIZE', (0,1), (-1,-1), 8.5),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('BOTTOMPADDING', (0,1), (-1,-1), 8),
+        ('TOPPADDING', (0,1), (-1,-1), 8),
+    ]))
+    story.append(tech_table)
     
     doc.build(story, canvasmaker=NumberedCanvas)
 
