@@ -751,15 +751,7 @@ function DashboardComponent() {
             <span className="hidden md:inline">Simulate Email</span>
             <span className="hidden sm:inline md:hidden">Email</span>
           </button>
-          <button 
-            onClick={() => setIsVoiceSimOpen(true)}
-            className="flex items-center gap-2 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-xs font-semibold text-slate-200 p-2 sm:px-3.5 sm:py-2 transition-all cursor-pointer"
-            title="Simulate Voice Call"
-          >
-            <Phone className="h-4 w-4 text-emerald-400" />
-            <span className="hidden md:inline">Simulate Voice Call</span>
-            <span className="hidden sm:inline md:hidden">Voice</span>
-          </button>
+
           <button 
             onClick={() => setIsChatWidgetOpen(true)}
             className="flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white p-2 sm:px-3.5 sm:py-2 transition-all shadow-md shadow-indigo-600/10 cursor-pointer"
