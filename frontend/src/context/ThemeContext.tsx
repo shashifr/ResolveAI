@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 
 type Theme = "dark" | "light";
 
@@ -14,10 +14,19 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("dark");
-  const [mounted, setMounted] = useState(false);
+
+  const applyTheme = useCallback((t: Theme) => {
+    if (typeof document !== "undefined") {
+      const root = document.documentElement;
+      if (t === "dark") {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
+    }
+  }, []);
 
   useEffect(() => {
-    // Check saved theme in localStorage or system preference
     const savedTheme = localStorage.getItem("resolveai-theme") as Theme | null;
     if (savedTheme === "dark" || savedTheme === "light") {
       setThemeState(savedTheme);
@@ -28,17 +37,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setThemeState(initialTheme);
       applyTheme(initialTheme);
     }
-    setMounted(true);
-  }, []);
-
-  const applyTheme = (t: Theme) => {
-    const root = document.documentElement;
-    if (t === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-  };
+  }, [applyTheme]);
 
   const setTheme = (t: Theme) => {
     setThemeState(t);

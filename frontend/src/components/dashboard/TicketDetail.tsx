@@ -135,7 +135,7 @@ export default function TicketDetail({
           </div>
           <div className="flex items-center gap-1.5 ml-auto text-neutral-400 text-[11px]">
             <Clock className="w-3.5 h-3.5" />
-            <span>Updated {new Date(ticket.updated_at || Date.now()).toLocaleTimeString()}</span>
+            <span>Updated {ticket.updated_at ? new Date(ticket.updated_at).toLocaleTimeString() : "Just now"}</span>
           </div>
         </div>
       </div>
@@ -297,7 +297,7 @@ export default function TicketDetail({
                   }`}>
                     <div className="flex items-center justify-between gap-3 text-[10px] opacity-75">
                       <span className="font-semibold capitalize">{m.sender}</span>
-                      <span>{new Date(m.timestamp || Date.now()).toLocaleTimeString()}</span>
+                      <span>{m.timestamp ? new Date(m.timestamp).toLocaleTimeString() : "Just now"}</span>
                     </div>
                     <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
                   </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Header from "../components/dashboard/Header";
 import MetricsBar from "../components/dashboard/MetricsBar";
 import TicketList from "../components/dashboard/TicketList";
@@ -15,6 +15,84 @@ import {
   EmailSimulationForm 
 } from "../types";
 import { ChevronLeft } from "lucide-react";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+
+const API_HEADERS = {
+  "Content-Type": "application/json",
+  "Authorization": "Bearer resolveai-demo-token"
+};
+
+const STATIC_TIMESTAMP = "2026-09-23T12:00:00.000Z";
+
+const INITIAL_DEMO_STORE: Record<string, TicketDetails> = {
+  "TKT-1001": {
+    id: "TKT-1001",
+    customer_email: "alice.vance@gmail.com",
+    customer_name: "Alice Vance",
+    channel: "email",
+    status: "Escalated",
+    subject: "Refund Request for Order #1001",
+    confidence_score: 0.60,
+    token_cost: 0.0177,
+    updated_at: STATIC_TIMESTAMP,
+    latest_message: "Hi, I received my headphones ORD-1001 but they are broken. I would like a full refund of $120.",
+    drafted_reply: "Hi Alice Vance, I have drafted a refund of $120.0 for your order ORD-1001. Since this is above our automatic refund threshold of $50, I've requested a support agent to approve this refund immediately.",
+    drafted_actions: [
+      { action: "issue_refund", order_id: "ORD-1001", amount: 120.0, reason: "Customer request (high-value)" }
+    ],
+    explanation: "Refund amount $120.0 is above the automated $50 threshold. Requires human confirmation.",
+    messages: [
+      {
+        id: 1,
+        sender: "customer",
+        content: "Hi, I received my headphones ORD-1001 but they are broken. I would like a full refund of $120.",
+        timestamp: STATIC_TIMESTAMP
+      }
+    ],
+    audit_logs: [
+      { node: "intake", input_summary: "Inbound email logged", model_used: "System", tokens: 50, cost: 0.0001, confidence: 1.0, action_taken: "Registered thread", prev_hash: "00000000000000000000000000000000", hash: "a1b2c3d4e5f67890123456789abcdef0", timestamp: STATIC_TIMESTAMP },
+      { node: "classifier", input_summary: "Intent: refund_request", model_used: "Gemini 1.5 Flash", tokens: 180, cost: 0.0002, confidence: 0.94, action_taken: "Classified refund request", prev_hash: "a1b2c3d4e5f67890123456789abcdef0", hash: "b2c3d4e5f67890123456789abcdef012", timestamp: STATIC_TIMESTAMP },
+      { node: "context_retriever", input_summary: "CRM Order ORD-1001 found", model_used: "SQLAlchemy", tokens: 100, cost: 0.0, confidence: 1.0, action_taken: "Fetched customer profile", prev_hash: "b2c3d4e5f67890123456789abcdef012", hash: "c3d4e5f67890123456789abcdef01234", timestamp: STATIC_TIMESTAMP },
+      { node: "resolution_agent", input_summary: "Proposed $120 refund", model_used: "Gemini 1.5 Pro", tokens: 520, cost: 0.015, confidence: 0.60, action_taken: "Drafted response & proposed refund", prev_hash: "c3d4e5f67890123456789abcdef01234", hash: "d4e5f67890123456789abcdef0123456", timestamp: STATIC_TIMESTAMP },
+      { node: "confidence_gate", input_summary: "Confidence 0.60 < 0.85 threshold", model_used: "Gatekeeper", tokens: 10, cost: 0.0, confidence: 0.60, action_taken: "Escalated to Human Review Console", prev_hash: "d4e5f67890123456789abcdef0123456", hash: "e5f67890123456789abcdef012345678", timestamp: STATIC_TIMESTAMP }
+    ]
+  },
+  "TKT-1002": {
+    id: "TKT-1002",
+    customer_email: "alice.vance@gmail.com",
+    customer_name: "Alice Vance",
+    channel: "email",
+    status: "Resolved",
+    subject: "Return Policy Inquiry",
+    confidence_score: 0.95,
+    token_cost: 0.0008,
+    updated_at: STATIC_TIMESTAMP,
+    latest_message: "Hi, can you tell me what your return policy is? How long do I have to return my items?",
+    drafted_reply: "Hi Alice Vance, We offer a 30-day return policy for all unused products in their original packaging. Refunds are processed back to the original payment method within 5-7 business days of receiving the returned item.",
+    drafted_actions: [],
+    explanation: "Resolved via Knowledge Base article: 'What is your return policy?'.",
+    messages: [
+      {
+        id: 1,
+        sender: "customer",
+        content: "Hi, can you tell me what your return policy is? How long do I have to return my items?",
+        timestamp: STATIC_TIMESTAMP
+      },
+      {
+        id: 2,
+        sender: "agent",
+        content: "Hi Alice Vance,\n\nHere is what I found regarding your question:\n\nWe offer a 30-day return policy for all unused products in their original packaging. Refunds are processed back to the original payment method within 5-7 business days of receiving the returned item.",
+        timestamp: STATIC_TIMESTAMP
+      }
+    ],
+    audit_logs: [
+      { node: "intake", input_summary: "Inbound FAQ email", model_used: "System", tokens: 40, cost: 0.0001, confidence: 1.0, action_taken: "Registered thread", prev_hash: "00000000000000000000000000000000", hash: "11111111111111111111111111111111", timestamp: STATIC_TIMESTAMP },
+      { node: "classifier", input_summary: "Intent: general_faq", model_used: "Gemini 1.5 Flash", tokens: 120, cost: 0.0001, confidence: 0.95, action_taken: "Classified general FAQ", prev_hash: "11111111111111111111111111111111", hash: "22222222222222222222222222222222", timestamp: STATIC_TIMESTAMP },
+      { node: "resolution_agent", input_summary: "KB Match: Return Policy", model_used: "Gemini 1.5 Flash", tokens: 280, cost: 0.0006, confidence: 0.95, action_taken: "Autonomous resolution sent", prev_hash: "22222222222222222222222222222222", hash: "33333333333333333333333333333333", timestamp: STATIC_TIMESTAMP }
+    ]
+  }
+};
 
 export default function Home() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -53,97 +131,21 @@ export default function Home() {
   const [mobileView, setMobileView] = useState<"list" | "detail">("list");
 
   // Local demo fallback store (guarantees 100% uptime with zero uncaught errors)
-  const demoStoreRef = useRef<Record<string, TicketDetails>>({
-    "TKT-1001": {
-      id: "TKT-1001",
-      customer_email: "alice.vance@gmail.com",
-      customer_name: "Alice Vance",
-      channel: "email",
-      status: "Escalated",
-      subject: "Refund Request for Order #1001",
-      confidence_score: 0.60,
-      token_cost: 0.0177,
-      updated_at: new Date().toISOString(),
-      latest_message: "Hi, I received my headphones ORD-1001 but they are broken. I would like a full refund of $120.",
-      drafted_reply: "Hi Alice Vance, I have drafted a refund of $120.0 for your order ORD-1001. Since this is above our automatic refund threshold of $50, I've requested a support agent to approve this refund immediately.",
-      drafted_actions: [
-        { action: "issue_refund", order_id: "ORD-1001", amount: 120.0, reason: "Customer request (high-value)" }
-      ],
-      explanation: "Refund amount $120.0 is above the automated $50 threshold. Requires human confirmation.",
-      messages: [
-        {
-          id: 1,
-          sender: "customer",
-          content: "Hi, I received my headphones ORD-1001 but they are broken. I would like a full refund of $120.",
-          timestamp: new Date(Date.now() - 3600000).toISOString()
-        }
-      ],
-      audit_logs: [
-        { node: "intake", input_summary: "Inbound email logged", model_used: "System", tokens: 50, cost: 0.0001, confidence: 1.0, action_taken: "Registered thread", prev_hash: "00000000000000000000000000000000", hash: "a1b2c3d4e5f67890123456789abcdef0", timestamp: new Date(Date.now() - 3500000).toISOString() },
-        { node: "classifier", input_summary: "Intent: refund_request", model_used: "Gemini 1.5 Flash", tokens: 180, cost: 0.0002, confidence: 0.94, action_taken: "Classified refund request", prev_hash: "a1b2c3d4e5f67890123456789abcdef0", hash: "b2c3d4e5f67890123456789abcdef012", timestamp: new Date(Date.now() - 3400000).toISOString() },
-        { node: "context_retriever", input_summary: "CRM Order ORD-1001 found", model_used: "SQLAlchemy", tokens: 100, cost: 0.0, confidence: 1.0, action_taken: "Fetched customer profile", prev_hash: "b2c3d4e5f67890123456789abcdef012", hash: "c3d4e5f67890123456789abcdef01234", timestamp: new Date(Date.now() - 3300000).toISOString() },
-        { node: "resolution_agent", input_summary: "Proposed $120 refund", model_used: "Gemini 1.5 Pro", tokens: 520, cost: 0.015, confidence: 0.60, action_taken: "Drafted response & proposed refund", prev_hash: "c3d4e5f67890123456789abcdef01234", hash: "d4e5f67890123456789abcdef0123456", timestamp: new Date(Date.now() - 3200000).toISOString() },
-        { node: "confidence_gate", input_summary: "Confidence 0.60 < 0.85 threshold", model_used: "Gatekeeper", tokens: 10, cost: 0.0, confidence: 0.60, action_taken: "Escalated to Human Review Console", prev_hash: "d4e5f67890123456789abcdef0123456", hash: "e5f67890123456789abcdef012345678", timestamp: new Date(Date.now() - 3100000).toISOString() }
-      ]
-    },
-    "TKT-1002": {
-      id: "TKT-1002",
-      customer_email: "alice.vance@gmail.com",
-      customer_name: "Alice Vance",
-      channel: "email",
-      status: "Resolved",
-      subject: "Return Policy Inquiry",
-      confidence_score: 0.95,
-      token_cost: 0.0008,
-      updated_at: new Date(Date.now() - 7200000).toISOString(),
-      latest_message: "Hi, can you tell me what your return policy is? How long do I have to return my items?",
-      drafted_reply: "Hi Alice Vance, We offer a 30-day return policy for all unused products in their original packaging. Refunds are processed back to the original payment method within 5-7 business days of receiving the returned item.",
-      drafted_actions: [],
-      explanation: "Resolved via Knowledge Base article: 'What is your return policy?'.",
-      messages: [
-        {
-          id: 1,
-          sender: "customer",
-          content: "Hi, can you tell me what your return policy is? How long do I have to return my items?",
-          timestamp: new Date(Date.now() - 7200000).toISOString()
-        },
-        {
-          id: 2,
-          sender: "agent",
-          content: "Hi Alice Vance,\n\nHere is what I found regarding your question:\n\nWe offer a 30-day return policy for all unused products in their original packaging. Refunds are processed back to the original payment method within 5-7 business days of receiving the returned item.",
-          timestamp: new Date(Date.now() - 7190000).toISOString()
-        }
-      ],
-      audit_logs: [
-        { node: "intake", input_summary: "Inbound FAQ email", model_used: "System", tokens: 40, cost: 0.0001, confidence: 1.0, action_taken: "Registered thread", prev_hash: "00000000000000000000000000000000", hash: "11111111111111111111111111111111", timestamp: new Date(Date.now() - 7195000).toISOString() },
-        { node: "classifier", input_summary: "Intent: general_faq", model_used: "Gemini 1.5 Flash", tokens: 120, cost: 0.0001, confidence: 0.95, action_taken: "Classified general FAQ", prev_hash: "11111111111111111111111111111111", hash: "22222222222222222222222222222222", timestamp: new Date(Date.now() - 7194000).toISOString() },
-        { node: "resolution_agent", input_summary: "KB Match: Return Policy", model_used: "Gemini 1.5 Flash", tokens: 280, cost: 0.0006, confidence: 0.95, action_taken: "Autonomous resolution sent", prev_hash: "22222222222222222222222222222222", hash: "33333333333333333333333333333333", timestamp: new Date(Date.now() - 7190000).toISOString() }
-      ]
-    }
-  });
-
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-
-  const API_HEADERS = {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer resolveai-demo-token"
-  };
+  const demoStoreRef = useRef<Record<string, TicketDetails>>(INITIAL_DEMO_STORE);
 
   // Fetch tickets and metrics
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const ticketsRes = await fetch(`${backendUrl}/api/tickets`, { headers: API_HEADERS });
+      const ticketsRes = await fetch(`${BACKEND_URL}/api/tickets`, { headers: API_HEADERS });
       if (!ticketsRes.ok) throw new Error("Backend tickets unavailable");
       const ticketsData: Ticket[] = await ticketsRes.json();
       setTickets(ticketsData);
       setIsBackendConnected(true);
 
       // Auto-select first ticket if none selected
-      if (!selectedTicketId && ticketsData.length > 0) {
-        setSelectedTicketId(ticketsData[0].id);
-      }
+      setSelectedTicketId(prev => prev || (ticketsData.length > 0 ? ticketsData[0].id : null));
 
-      const metricsRes = await fetch(`${backendUrl}/api/metrics`, { headers: API_HEADERS });
+      const metricsRes = await fetch(`${BACKEND_URL}/api/metrics`, { headers: API_HEADERS });
       if (metricsRes.ok) {
         const metricsData = await metricsRes.json();
         setMetrics(metricsData);
@@ -166,9 +168,7 @@ export default function Home() {
       })).sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
 
       setTickets(summaries);
-      if (!selectedTicketId && summaries.length > 0) {
-        setSelectedTicketId(summaries[0].id);
-      }
+      setSelectedTicketId(prev => prev || (summaries.length > 0 ? summaries[0].id : null));
 
       const total = summaries.length;
       const resolved = summaries.filter(t => t.status === "Resolved").length;
@@ -188,13 +188,13 @@ export default function Home() {
         avg_resp_time_sec: 1.2
       });
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 4000);
     return () => clearInterval(interval);
-  }, [selectedTicketId]);
+  }, [fetchData]);
 
   // Fetch ticket details when selected
   useEffect(() => {
@@ -205,7 +205,7 @@ export default function Home() {
 
     const fetchDetails = async () => {
       try {
-        const res = await fetch(`${backendUrl}/api/tickets/${selectedTicketId}`, { headers: API_HEADERS });
+        const res = await fetch(`${BACKEND_URL}/api/tickets/${selectedTicketId}`, { headers: API_HEADERS });
         if (res.ok) {
           const data = await res.json();
           setSelectedTicketDetails(data);
@@ -235,7 +235,7 @@ export default function Home() {
     setActionLoading(true);
 
     try {
-      const res = await fetch(`${backendUrl}/api/tickets/${selectedTicketId}/action`, {
+      const res = await fetch(`${BACKEND_URL}/api/tickets/${selectedTicketId}/action`, {
         method: "POST",
         headers: API_HEADERS,
         body: JSON.stringify({
@@ -247,7 +247,7 @@ export default function Home() {
       if (res.ok) {
         await fetchData();
         // Re-fetch details
-        const detRes = await fetch(`${backendUrl}/api/tickets/${selectedTicketId}`, { headers: API_HEADERS });
+        const detRes = await fetch(`${BACKEND_URL}/api/tickets/${selectedTicketId}`, { headers: API_HEADERS });
         if (detRes.ok) {
           setSelectedTicketDetails(await detRes.json());
         }
@@ -290,7 +290,7 @@ export default function Home() {
   const handleSimulateEmail = async (form: EmailSimulationForm) => {
     setEmailLoading(true);
     try {
-      const res = await fetch(`${backendUrl}/api/simulate/email`, {
+      const res = await fetch(`${BACKEND_URL}/api/simulate/email`, {
         method: "POST",
         headers: API_HEADERS,
         body: JSON.stringify({
@@ -359,7 +359,7 @@ export default function Home() {
     setChatStatus("typing");
 
     try {
-      const res = await fetch(`${backendUrl}/api/simulate/chat`, {
+      const res = await fetch(`${BACKEND_URL}/api/simulate/chat`, {
         method: "POST",
         headers: API_HEADERS,
         body: JSON.stringify({
