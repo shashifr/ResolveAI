@@ -1,92 +1,80 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --muted: #64748b;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #090d16;
+  --foreground: #f1f5f9;
+  --card-bg: #111827;
+  --card-border: #1e293b;
+  --muted: #94a3b8;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Custom Intro Screen Keyframes & Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-@keyframes glowPulse {
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.18);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
+}
+
+/* Keyframes & Micro-Animations */
+@keyframes pulseSubtle {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.15), inset 0 0 10px rgba(99, 102, 241, 0.1);
-    border-color: rgba(99, 102, 241, 0.3);
+    opacity: 1;
+    transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 40px rgba(99, 102, 241, 0.4), inset 0 0 20px rgba(99, 102, 241, 0.25);
-    border-color: rgba(99, 102, 241, 0.6);
+    opacity: 0.8;
+    transform: scale(0.98);
   }
 }
 
-@keyframes gridPan {
-  from {
-    background-position: 0 0;
+@keyframes nodeGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
   }
-  to {
-    background-position: 40px 40px;
+  50% {
+    box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
   }
 }
 
-.animate-fade-in-up {
-  opacity: 0;
-  animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.animate-pulse-subtle {
+  animation: pulseSubtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.animation-delay-200 {
-  animation-delay: 200ms;
+.animate-node-glow {
+  animation: nodeGlow 2.5s ease-in-out infinite;
 }
-
-.animation-delay-450 {
-  animation-delay: 450ms;
-}
-
-.animation-delay-700 {
-  animation-delay: 700ms;
-}
-
-.animation-delay-1000 {
-  animation-delay: 1000ms;
-}
-
-.animate-glow-pulse {
-  animation: glowPulse 3s infinite ease-in-out;
-}
-
-.grid-bg-pan {
-  background-size: 40px 40px;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  animation: gridPan 10s linear infinite;
-}
-
